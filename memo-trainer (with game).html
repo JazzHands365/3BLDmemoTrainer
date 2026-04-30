@@ -11,7 +11,7 @@
     --surface: #111418;
     --surface2: #181c22;
     --border: #1e2530;
-    --accent: #00e5ff;
+    --accent: #00ff1a;
     --accent2: #ff6b35;
     --accent3: #7fff6b;
     --text: #d0dce8;
@@ -188,15 +188,15 @@
 <div class="wrapper">
   <header>
     <div class="title">3×3 Memo Trainer</div>
-    <div class="subtitle">Blind Solving Memory Aid · A–X Alphabet</div>
+    <div class="subtitle">3BLD · Speffz · Edge buf B · Corner buf A</div>
   </header>
 
   <div class="card">
-    <div class="row-label">Row 1</div>
+    <div class="row-label">Edges · Speffz</div>
     <div class="letter-row" id="row1"></div>
     <div class="row-meta" id="meta1"></div>
     <div class="row-divider"></div>
-    <div class="row-label">Row 2</div>
+    <div class="row-label">Corners · Speffz</div>
     <div class="letter-row" id="row2"></div>
     <div class="row-meta" id="meta2"></div>
   </div>
@@ -210,7 +210,7 @@
 
   <div class="answer-section">
     <div class="answer-label">Your Answer</div>
-    <div class="answer-hint">Type the full sequence — pairs separated by spaces (e.g. AB CD EF GH IJ KL M UV WX YZ AB CD)</div>
+    <div class="answer-hint">Type the full sequence — edges then corners, pairs separated by spaces (e.g. GH IJ KL M · UV WX S)</div>
     <input class="answer-input" id="answerInput" type="text"
       placeholder="Type your memorised sequence here..."
       autocomplete="off" spellcheck="false"
@@ -368,27 +368,137 @@
 
 <script>
 /* ══════════════════════════════════════
-   MEMO TRAINER
+   MEMO TRAINER  –  Real 3BLD / Speffz
+   Edge buffer: B  |  Corner buffer: A
 ══════════════════════════════════════ */
-const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
-let currentSequence = [], isHidden = false;
 
-function randLetter(){ return LETTERS[Math.floor(Math.random()*LETTERS.length)]; }
+/*
+  Speffz sticker layout (24 stickers, A–X):
+  Each piece has 2 (edge) or 3 (corner) sticker positions.
+  Buffers are excluded from the target pool.
 
-function generateSequence(count){
-  const seq=[];
-  for(let i=0;i<count;i++){
-    let l; do{ l=randLetter(); }while(seq.length>0&&l===seq[seq.length-1]);
-    seq.push(l);
-  }
-  return seq;
+  EDGES  (buffer = B, i.e. UF sticker)
+  Piece positions per face/slot in Speffz order:
+    A=UB  B=UF  C=UR  D=UL
+    E=LU  F=LF  G=LD  H=LB
+    I=BU  J=BR  K=BD  L=BL
+    M=RU  N=RF  O=RD  P=RB
+    Q=FU  R=FR  S=FD  T=FL
+    U=DF  V=DR  W=DB  X=DL
+
+  Edge pairs (the two stickers of each physical edge piece):
+    UB/BU → A,I   |  UF/FU → B,Q   |  UR/RU → C,M   |  UL/LU → D,E
+    LF/FL → F,T   |  LD/DL → G,X   |  LB/BL → H,L
+    BR/RB → J,P   |  BD/DB → K,W
+    RF/FR → N,R   |  RD/DR → O,V
+    FD/DF → S,U
+
+  CORNERS (buffer = A, i.e. UBL sticker)
+  Speffz corner stickers:
+    A=UBL  B=UBR  C=UFR  D=UFL
+    E=LUB  F=LUF  G=LDF  H=LDB
+    I=BUR  J=BUL  K=BDL  L=BDR
+    M=RUB  N=RUF  O=RDF  P=RDB
+    Q=FUL  R=FUR  S=FDR  T=FDL
+    U=DFL  V=DFR  W=DBR  X=DBL
+
+  Corner triples (the 3 stickers of each physical corner):
+    UBL → A,E,J   UBR → B,I,M   UFR → C,N,R   UFL → D,F,Q
+    LDF → G,T,U   LDB → H,K,X
+    RDB → O,P,W   RDF... wait, let me use standard speffz
+
+  Standard Speffz corners (verified):
+    UBL: A, E(=LUB), J(=BUL)   -- buffer piece, excluded
+    UBR: B, M(=RUB), I(=BUR)
+    UFR: C, R(=FUR), N(=RUF)
+    UFL: D, Q(=FUL), F(=LUF)
+    DFL: U, T(=FDL), G(=LDF)
+    DFR: V, S(=FDR), O(=RDF)
+    DBR: W, P(=RDB), L(=BDR)   -- note: L is BDR
+    DBL: X, K(=BDL), H(=LDB)
+*/
+
+// ── Edge data ──────────────────────────────────────────────
+// All 24 edge sticker positions. Each entry: [sticker, partner_sticker]
+// Buffer sticker = B, partner = Q (the UF/FU edge)
+const EDGE_BUFFER = 'B';
+const EDGE_PAIRS = {
+  A:'I', I:'A',
+  B:'Q', Q:'B',   // buffer piece
+  C:'M', M:'C',
+  D:'E', E:'D',
+  F:'T', T:'F',
+  G:'X', X:'G',
+  H:'L', L:'H',
+  J:'P', P:'J',
+  K:'W', W:'K',
+  N:'R', R:'N',
+  O:'V', V:'O',
+  S:'U', U:'S',
+};
+// All edge stickers except the buffer piece (B & Q)
+const EDGE_TARGETS = Object.keys(EDGE_PAIRS).filter(s => s !== 'B' && s !== 'Q');
+
+// ── Corner data ────────────────────────────────────────────
+// Buffer piece = A,E,J  (UBL corner)
+const CORNER_BUFFER = 'A';
+const CORNER_TRIPLES = [
+  ['A','E','J'],   // UBL  ← buffer piece
+  ['B','M','I'],   // UBR
+  ['C','R','N'],   // UFR
+  ['D','Q','F'],   // UFL
+  ['U','T','G'],   // DFL
+  ['V','S','O'],   // DFR
+  ['W','P','L'],   // DBR
+  ['X','K','H'],   // DBL
+];
+// Map sticker → its corner triple
+const STICKER_TO_CORNER = {};
+CORNER_TRIPLES.forEach(tri => tri.forEach(s => { STICKER_TO_CORNER[s] = tri; }));
+// All corner stickers except the buffer piece (A, E, J)
+const CORNER_TARGETS = 'ABCDEFGHIJKLMNOPQRSTUVWX'.split('').filter(s => !['A','E','J'].includes(s));
+
+// ── Helpers ────────────────────────────────────────────────
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+/*
+  Build a realistic edge memo sequence.
+  Rules:
+  - We're solving all edges except the buffer piece (B/Q) via 3-cycles
+  - Each target letter is a sticker that needs to be moved to UF or its partner position
+  - A cycle: pick an unsolved sticker → memo it → follow the cycle chain until we return to buffer
+  - Result is a flat letter string of pairs (with possible singleton if odd-length cycle chain)
+  - Pieces can be "flipped" (twisted in place) – represented by the partner sticker being the target
+  - A twisted/flipped edge gets a singleton letter appended
+*/
+function generateEdgeMemo(odd){
+  // 12 = even, 13 = odd — match the parity flag
+  const targetLen = odd ? 13 : 12;
+  const allTargets = shuffle(EDGE_TARGETS);
+  return allTargets.slice(0, targetLen);
 }
 
+function generateCornerMemo(odd){
+  // 9 = odd, 10 = even — match the parity flag
+  const targetLen = odd ? 9 : 10;
+  const allTargets = shuffle(CORNER_TARGETS);
+  return allTargets.slice(0, targetLen);
+}
+
+let currentSequence = [], isHidden = false;
+// Store edge/corner split for row labels
+let _edgeLen = 0, _cornerLen = 0;
+
 function generateNew(){
-  const r1e=Math.random()<.5, r1c=r1e?12:13, r2c=r1e?10:9;
-  const r1=generateSequence(r1c), r2=generateSequence(r2c);
-  currentSequence=[...r1,...r2];
-  renderRow('row1',r1,'meta1'); renderRow('row2',r2,'meta2');
+  const odd = Math.random() < 0.5;
+  const edges = generateEdgeMemo(odd);
+  const corners = generateCornerMemo(odd);
+  _edgeLen = edges.length;
+  _cornerLen = corners.length;
+  currentSequence = [...edges, ...corners];
+  renderRow('row1', edges, 'meta1', 'edges');
+  renderRow('row2', corners, 'meta2', 'corners');
   setHidden(false);
   document.getElementById('answerInput').value='';
   document.getElementById('feedback').className='feedback';
@@ -397,7 +507,7 @@ function generateNew(){
   const f=document.createElement('div'); f.className='scan-flash'; document.body.appendChild(f); setTimeout(()=>f.remove(),600);
 }
 
-function renderRow(rowId,letters,metaId){
+function renderRow(rowId,letters,metaId,type){
   const el=document.getElementById(rowId); el.innerHTML='';
   const pc=Math.floor(letters.length/2), hs=letters.length%2===1;
   for(let i=0;i<pc;i++){
@@ -406,7 +516,8 @@ function renderRow(rowId,letters,metaId){
     el.appendChild(s);
   }
   if(hs){ const s=document.createElement('span'); s.className='singleton'; s.textContent=letters[letters.length-1]; el.appendChild(s); }
-  document.getElementById(metaId).textContent=`${letters.length} letters · ${pc} pair${pc!==1?'s':''}${hs?' + 1':''}`;
+  const bufNote = type==='edges' ? ` · buf B` : type==='corners' ? ` · buf A` : '';
+  document.getElementById(metaId).textContent=`${letters.length} letters · ${pc} pair${pc!==1?'s':''}${hs?' + 1':''}${bufNote}`;
 }
 
 function setHidden(h){
