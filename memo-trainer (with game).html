@@ -1,0 +1,1237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3x3 Memo Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111418;
+    --surface2: #181c22;
+    --border: #1e2530;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #7fff6b;
+    --text: #d0dce8;
+    --text-dim: #4a5568;
+    --text-muted: #2a3344;
+    --success: #7fff6b;
+    --error: #ff4560;
+    --pair-gap: 0.55em;
+    --stroop-bg: #0d0f14;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 820px;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+  }
+
+  header { text-align: center; }
+
+  .title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    letter-spacing: 0.18em;
+    color: var(--accent);
+    text-shadow: 0 0 20px rgba(0,229,255,0.4), 0 0 60px rgba(0,229,255,0.15);
+    text-transform: uppercase;
+  }
+
+  .subtitle {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--text-dim);
+    margin-top: 0.4rem;
+    text-transform: uppercase;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2rem 2.5rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.6;
+  }
+
+  .row-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.5rem;
+  }
+
+  .letter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.2rem var(--pair-gap);
+    min-height: 3.2rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .pair {
+    display: inline-flex;
+    gap: 0;
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+    letter-spacing: 0.06em;
+    color: var(--text);
+    transition: color 0.2s;
+  }
+
+  .pair .letter { display: inline-block; transition: all 0.15s; }
+  .pair .letter:hover { color: var(--accent); }
+
+  .singleton {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+    color: var(--accent2);
+    letter-spacing: 0.06em;
+    margin-left: 0.15em;
+    transition: all 0.15s;
+  }
+
+  .row-divider { height: 1px; background: var(--border); margin: 1.2rem 0; }
+
+  .row-meta {
+    font-size: 0.65rem;
+    color: var(--text-dim);
+    letter-spacing: 0.2em;
+    margin-top: 0.3rem;
+  }
+
+  .letter-row.hidden .pair,
+  .letter-row.hidden .singleton {
+    color: transparent;
+    text-shadow: none;
+    background: var(--text-muted);
+    border-radius: 2px;
+    user-select: none;
+  }
+
+  .letter-row.hidden .pair { min-width: 2.6ch; }
+
+  .controls {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 1px solid;
+    border-radius: 3px;
+    padding: 0.7rem 1.6rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover::after { opacity: 0.07; }
+  .btn:active::after { opacity: 0.15; }
+
+  .btn-hide { color: var(--accent); border-color: var(--accent); }
+  .btn-hide:hover { box-shadow: 0 0 14px rgba(0,229,255,0.25); }
+
+  .btn-new { color: var(--accent2); border-color: var(--accent2); }
+  .btn-new:hover { box-shadow: 0 0 14px rgba(255,107,53,0.25); }
+
+  .btn-check { color: var(--accent3); border-color: var(--accent3); }
+  .btn-check:hover { box-shadow: 0 0 14px rgba(127,255,107,0.25); }
+
+  .btn-stroop {
+    color: #c084fc;
+    border-color: #c084fc;
+  }
+  .btn-stroop:hover { box-shadow: 0 0 14px rgba(192,132,252,0.3); }
+  .btn-stroop.active {
+    color: var(--error);
+    border-color: var(--error);
+    animation: stroopPulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes stroopPulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(255,69,96,0.3); }
+    50% { box-shadow: 0 0 20px rgba(255,69,96,0.6); }
+  }
+
+  .answer-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1.5rem 2rem;
+    position: relative;
+  }
+
+  .answer-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent3), transparent);
+    opacity: 0.5;
+  }
+
+  .answer-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.35em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+  }
+
+  .answer-hint {
+    font-size: 0.6rem;
+    color: var(--text-muted);
+    letter-spacing: 0.15em;
+    margin-bottom: 0.8rem;
+  }
+
+  .answer-input {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1rem, 2.5vw, 1.4rem);
+    letter-spacing: 0.12em;
+    padding: 0.9rem 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    text-transform: uppercase;
+  }
+
+  .answer-input:focus {
+    border-color: var(--accent3);
+    box-shadow: 0 0 0 2px rgba(127,255,107,0.08);
+  }
+
+  .answer-input::placeholder {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+  }
+
+  .feedback {
+    margin-top: 1rem;
+    font-size: 0.75rem;
+    letter-spacing: 0.12em;
+    min-height: 1.5rem;
+    transition: all 0.2s;
+  }
+
+  .feedback.success { color: var(--success); }
+  .feedback.error { color: var(--error); }
+
+  .feedback-detail {
+    margin-top: 0.6rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+  }
+
+  .feedback-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    font-size: 0.7rem;
+  }
+
+  .feedback-row-label { color: var(--text-dim); min-width: 4ch; letter-spacing: 0.1em; }
+
+  .feedback-chars {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+  }
+
+  .char-match { color: var(--success); }
+  .char-miss  { color: var(--error); background: rgba(255,69,96,0.12); border-radius: 2px; padding: 0 2px; }
+  .char-extra { color: var(--accent2); background: rgba(255,107,53,0.12); border-radius: 2px; padding: 0 2px; }
+
+  @keyframes scanFlash {
+    0%   { transform: translateY(-100%); opacity: 0.5; }
+    100% { transform: translateY(100vh); opacity: 0; }
+  }
+
+  .scan-flash {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    pointer-events: none;
+    z-index: 999;
+    animation: scanFlash 0.5s ease-out forwards;
+  }
+
+  @keyframes revealPulse {
+    0%   { opacity: 0; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  .letter-row .pair,
+  .letter-row .singleton {
+    animation: revealPulse 0.25s ease-out both;
+  }
+
+  .letter-row .pair:nth-child(1) { animation-delay: 0s; }
+  .letter-row .pair:nth-child(2) { animation-delay: 0.03s; }
+  .letter-row .pair:nth-child(3) { animation-delay: 0.06s; }
+  .letter-row .pair:nth-child(4) { animation-delay: 0.09s; }
+  .letter-row .pair:nth-child(5) { animation-delay: 0.12s; }
+  .letter-row .pair:nth-child(6) { animation-delay: 0.15s; }
+  .letter-row .pair:nth-child(7) { animation-delay: 0.18s; }
+
+  footer {
+    text-align: center;
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  /* ─── STROOP OVERLAY ─── */
+  .stroop-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 7, 10, 0.92);
+    backdrop-filter: blur(6px);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .stroop-overlay.visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .stroop-panel {
+    background: #0d0f14;
+    border: 1px solid #1e2a3a;
+    border-radius: 6px;
+    padding: 2.5rem 3rem;
+    width: min(560px, 92vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.8rem;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stroop-panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #c084fc, transparent);
+    opacity: 0.8;
+  }
+
+  .stroop-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    width: 100%;
+  }
+
+  .stroop-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 1rem;
+    letter-spacing: 0.25em;
+    color: #c084fc;
+    text-transform: uppercase;
+    text-shadow: 0 0 20px rgba(192,132,252,0.4);
+  }
+
+  .stroop-subtitle {
+    font-size: 0.6rem;
+    letter-spacing: 0.25em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  /* Timer bar */
+  .stroop-timer-wrap {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .stroop-timer-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .stroop-timer-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+  }
+
+  .stroop-time-val {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #c084fc;
+    letter-spacing: 0.1em;
+    transition: color 0.3s;
+  }
+
+  .stroop-time-val.warning { color: var(--accent2); }
+  .stroop-time-val.danger  { color: var(--error); }
+
+  .stroop-bar-track {
+    width: 100%;
+    height: 4px;
+    background: var(--text-muted);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .stroop-bar-fill {
+    height: 100%;
+    background: #c084fc;
+    border-radius: 2px;
+    transition: width 0.1s linear, background 0.3s;
+    transform-origin: left;
+  }
+
+  .stroop-bar-fill.warning { background: var(--accent2); }
+  .stroop-bar-fill.danger  { background: var(--error); }
+
+  /* Word display */
+  .stroop-word-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 6rem;
+    width: 100%;
+  }
+
+  .stroop-word {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2.5rem, 8vw, 4rem);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: opacity 0.1s;
+    user-select: none;
+  }
+
+  .stroop-word.flash-out { opacity: 0; transform: scale(0.92); transition: opacity 0.08s, transform 0.08s; }
+  .stroop-word.flash-in  { opacity: 1; transform: scale(1); transition: opacity 0.12s, transform 0.12s; }
+
+  /* Instruction */
+  .stroop-instruction {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    text-align: center;
+  }
+
+  /* Colour buttons */
+  .stroop-buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.6rem;
+    width: 100%;
+  }
+
+  .stroop-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 2px solid;
+    border-radius: 3px;
+    padding: 0.7rem 0.4rem;
+    cursor: pointer;
+    background: transparent;
+    transition: all 0.1s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stroop-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
+  .stroop-btn:active { transform: translateY(0); filter: brightness(0.9); }
+
+  .stroop-btn.correct-flash {
+    animation: correctFlash 0.25s ease-out;
+  }
+
+  .stroop-btn.wrong-flash {
+    animation: wrongFlash 0.3s ease-out;
+  }
+
+  @keyframes correctFlash {
+    0%   { background: rgba(127,255,107,0.3); }
+    100% { background: transparent; }
+  }
+
+  @keyframes wrongFlash {
+    0%   { background: rgba(255,69,96,0.35); transform: translateX(-3px); }
+    33%  { transform: translateX(3px); }
+    66%  { transform: translateX(-2px); }
+    100% { background: transparent; transform: translateX(0); }
+  }
+
+  /* Score + streak */
+  .stroop-stats {
+    display: flex;
+    gap: 2rem;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .stroop-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.2rem;
+  }
+
+  .stroop-stat-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.25em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .stroop-stat-val {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: var(--text);
+    letter-spacing: 0.08em;
+    transition: color 0.2s;
+  }
+
+  .stroop-stat-val.streak-fire { color: var(--accent2); }
+
+  /* End screen */
+  .stroop-end {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.4rem;
+    width: 100%;
+  }
+
+  .stroop-end.visible { display: flex; }
+
+  .stroop-end-title {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
+    color: #c084fc;
+    text-transform: uppercase;
+  }
+
+  .stroop-end-stats {
+    display: flex;
+    gap: 2.5rem;
+    justify-content: center;
+  }
+
+  .stroop-end-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .stroop-end-stat-val {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    font-size: 2rem;
+    color: var(--text);
+  }
+
+  .stroop-end-stat-label {
+    font-size: 0.55rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+
+  .stroop-accuracy-bar {
+    width: 100%;
+    height: 6px;
+    background: var(--text-muted);
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .stroop-accuracy-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--error), var(--accent2), var(--success));
+    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .stroop-accuracy-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-align: center;
+  }
+
+  .stroop-close-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 1px solid #c084fc;
+    border-radius: 3px;
+    padding: 0.7rem 2rem;
+    cursor: pointer;
+    background: transparent;
+    color: #c084fc;
+    transition: all 0.15s;
+    margin-top: 0.5rem;
+  }
+
+  .stroop-close-btn:hover {
+    background: rgba(192,132,252,0.1);
+    box-shadow: 0 0 16px rgba(192,132,252,0.3);
+  }
+
+  .stroop-active-main { display: none; width: 100%; flex-direction: column; align-items: center; gap: 1.8rem; }
+  .stroop-active-main.visible { display: flex; }
+
+  /* Duration selector */
+  .stroop-duration-select {
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
+  .stroop-duration-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    border: 1px solid #2a3344;
+    border-radius: 3px;
+    padding: 0.45rem 0.9rem;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-dim);
+    transition: all 0.15s;
+  }
+
+  .stroop-duration-btn.selected,
+  .stroop-duration-btn:hover {
+    border-color: #c084fc;
+    color: #c084fc;
+  }
+
+  .stroop-start-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.6rem;
+    width: 100%;
+  }
+
+  .stroop-start-desc {
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.8;
+    max-width: 380px;
+  }
+
+  .stroop-start-btn {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: 1px solid #c084fc;
+    border-radius: 3px;
+    padding: 0.8rem 2.5rem;
+    cursor: pointer;
+    background: transparent;
+    color: #c084fc;
+    transition: all 0.15s;
+  }
+
+  .stroop-start-btn:hover {
+    background: rgba(192,132,252,0.1);
+    box-shadow: 0 0 20px rgba(192,132,252,0.35);
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <header>
+    <div class="title">3×3 Memo Trainer</div>
+    <div class="subtitle">Blind Solving Memory Aid · A–X Alphabet</div>
+  </header>
+
+  <div class="card" id="displayCard">
+    <div class="row-label">Row 1</div>
+    <div class="letter-row" id="row1"></div>
+    <div class="row-meta" id="meta1"></div>
+    <div class="row-divider"></div>
+    <div class="row-label">Row 2</div>
+    <div class="letter-row" id="row2"></div>
+    <div class="row-meta" id="meta2"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-hide" id="btnHide" onclick="toggleHide()">Hide</button>
+    <button class="btn btn-new" onclick="generateNew()">New Set</button>
+    <button class="btn btn-stroop" id="btnStroop" onclick="openStroop()">Game</button>
+    <button class="btn btn-check" onclick="checkAnswer()">Check</button>
+  </div>
+
+  <div class="answer-section">
+    <div class="answer-label">Your Answer</div>
+    <div class="answer-hint">Type the full sequence — pairs separated by spaces (e.g. AB CD EF GH IJ KL M UV WX YZ AB CD)</div>
+    <input
+      class="answer-input"
+      id="answerInput"
+      type="text"
+      placeholder="Type your memorised sequence here..."
+      autocomplete="off"
+      spellcheck="false"
+      onkeydown="if(event.key==='Enter') checkAnswer()"
+    />
+    <div class="feedback" id="feedback"></div>
+    <div class="feedback-detail" id="feedbackDetail"></div>
+  </div>
+
+  <footer>Practice makes permanent</footer>
+</div>
+
+<!-- STROOP OVERLAY -->
+<div class="stroop-overlay" id="stroopOverlay">
+  <div class="stroop-panel">
+    <div class="stroop-header">
+      <div class="stroop-title">Stroop Task</div>
+      <div class="stroop-subtitle">Cognitive Interference · BLD Simulation</div>
+    </div>
+
+    <!-- Start screen -->
+    <div class="stroop-start-screen" id="stroopStartScreen">
+      <div class="stroop-start-desc">
+        Colour words are shown in mismatched ink colours.<br>
+        Identify the <strong style="color:#c084fc">INK COLOUR</strong>, not the word.<br><br>
+        This burns the same cognitive resources used during BLD memorisation — making it harder to rehearse your memo in the background.
+      </div>
+      <div>
+        <div class="stroop-stat-label" style="text-align:center;margin-bottom:0.5rem;">Duration</div>
+        <div class="stroop-duration-select" id="durationSelect">
+          <button class="stroop-duration-btn" data-sec="120" onclick="selectDuration(120)">2 min</button>
+          <button class="stroop-duration-btn selected" data-sec="150" onclick="selectDuration(150)">2:30</button>
+          <button class="stroop-duration-btn" data-sec="180" onclick="selectDuration(180)">3 min</button>
+        </div>
+      </div>
+      <button class="stroop-start-btn" onclick="startStroop()">Start Game</button>
+      <button class="stroop-close-btn" onclick="closeStroop()" style="border-color:#2a3344;color:var(--text-dim);margin-top:-0.5rem;">Cancel</button>
+    </div>
+
+    <!-- Active game -->
+    <div class="stroop-active-main" id="stroopActiveMain">
+      <div class="stroop-timer-wrap">
+        <div class="stroop-timer-row">
+          <span class="stroop-timer-label">Time Remaining</span>
+          <span class="stroop-time-val" id="stroopTimeVal">2:30</span>
+        </div>
+        <div class="stroop-bar-track">
+          <div class="stroop-bar-fill" id="stroopBarFill" style="width:100%"></div>
+        </div>
+      </div>
+
+      <div class="stroop-stats">
+        <div class="stroop-stat">
+          <div class="stroop-stat-label">Score</div>
+          <div class="stroop-stat-val" id="stroopScore">0</div>
+        </div>
+        <div class="stroop-stat">
+          <div class="stroop-stat-label">Streak</div>
+          <div class="stroop-stat-val" id="stroopStreak">0</div>
+        </div>
+        <div class="stroop-stat">
+          <div class="stroop-stat-label">Accuracy</div>
+          <div class="stroop-stat-val" id="stroopAccuracy">—</div>
+        </div>
+      </div>
+
+      <div class="stroop-instruction">What is the <span style="color:#c084fc;font-weight:700">ink colour</span> of this word?</div>
+
+      <div class="stroop-word-area">
+        <div class="stroop-word" id="stroopWord">RED</div>
+      </div>
+
+      <div class="stroop-buttons" id="stroopButtons"></div>
+    </div>
+
+    <!-- End screen -->
+    <div class="stroop-end" id="stroopEnd">
+      <div class="stroop-end-title">Session Complete</div>
+      <div class="stroop-end-stats">
+        <div class="stroop-end-stat">
+          <div class="stroop-end-stat-val" id="endScore">0</div>
+          <div class="stroop-end-stat-label">Score</div>
+        </div>
+        <div class="stroop-end-stat">
+          <div class="stroop-end-stat-val" id="endCorrect">0</div>
+          <div class="stroop-end-stat-label">Correct</div>
+        </div>
+        <div class="stroop-end-stat">
+          <div class="stroop-end-stat-val" id="endBestStreak">0</div>
+          <div class="stroop-end-stat-label">Best Streak</div>
+        </div>
+      </div>
+      <div style="width:100%;display:flex;flex-direction:column;gap:0.5rem;">
+        <div class="stroop-accuracy-label" id="endAccuracyLabel">Accuracy: —%</div>
+        <div class="stroop-accuracy-bar">
+          <div class="stroop-accuracy-fill" id="endAccuracyFill" style="width:0%"></div>
+        </div>
+      </div>
+      <button class="stroop-close-btn" onclick="closeStroop()">Back to Training</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* ═══════════════════════════════
+     MEMO TRAINER LOGIC
+  ═══════════════════════════════ */
+  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
+  let currentSequence = [];
+  let isHidden = false;
+
+  function randLetter() {
+    return LETTERS[Math.floor(Math.random() * LETTERS.length)];
+  }
+
+  function generateSequence(count) {
+    const seq = [];
+    for (let i = 0; i < count; i++) {
+      let letter;
+      do { letter = randLetter(); }
+      while (seq.length > 0 && letter === seq[seq.length - 1]);
+      seq.push(letter);
+    }
+    return seq;
+  }
+
+  function generateNew() {
+    const row1Even = Math.random() < 0.5;
+    const row1Count = row1Even ? 12 : 13;
+    const row2Count = row1Even ? 10 : 9;
+    const row1 = generateSequence(row1Count);
+    const row2 = generateSequence(row2Count);
+    currentSequence = [...row1, ...row2];
+    renderRow('row1', row1, 'meta1');
+    renderRow('row2', row2, 'meta2');
+    setHidden(false);
+    document.getElementById('answerInput').value = '';
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedbackDetail').innerHTML = '';
+    const flash = document.createElement('div');
+    flash.className = 'scan-flash';
+    document.body.appendChild(flash);
+    setTimeout(() => flash.remove(), 600);
+  }
+
+  function renderRow(rowId, letters, metaId) {
+    const el = document.getElementById(rowId);
+    el.innerHTML = '';
+    const pairCount = Math.floor(letters.length / 2);
+    const hasSingleton = letters.length % 2 === 1;
+    for (let i = 0; i < pairCount; i++) {
+      const span = document.createElement('span');
+      span.className = 'pair';
+      span.innerHTML = `<span class="letter">${letters[i*2]}</span><span class="letter">${letters[i*2+1]}</span>`;
+      el.appendChild(span);
+    }
+    if (hasSingleton) {
+      const single = document.createElement('span');
+      single.className = 'singleton';
+      single.textContent = letters[letters.length - 1];
+      el.appendChild(single);
+    }
+    const metaPairs = `${pairCount} pair${pairCount !== 1 ? 's' : ''}`;
+    const metaSingle = hasSingleton ? ' + 1' : '';
+    document.getElementById(metaId).textContent = `${letters.length} letters · ${metaPairs}${metaSingle}`;
+  }
+
+  function setHidden(hidden) {
+    isHidden = hidden;
+    const r1 = document.getElementById('row1');
+    const r2 = document.getElementById('row2');
+    const btn = document.getElementById('btnHide');
+    if (hidden) {
+      r1.classList.add('hidden');
+      r2.classList.add('hidden');
+      btn.textContent = 'Reveal';
+    } else {
+      r1.classList.remove('hidden');
+      r2.classList.remove('hidden');
+      btn.textContent = 'Hide';
+    }
+  }
+
+  function toggleHide() { setHidden(!isHidden); }
+
+  function checkAnswer() {
+    const fb = document.getElementById('feedback');
+    const detail = document.getElementById('feedbackDetail');
+    const raw = document.getElementById('answerInput').value.trim().toUpperCase();
+    if (!currentSequence.length) {
+      fb.className = 'feedback error';
+      fb.textContent = '⚠ Generate a set first.';
+      detail.innerHTML = '';
+      return;
+    }
+    const userLetters = raw.replace(/\s/g, '').split('');
+    const correct = currentSequence;
+    const allMatch = userLetters.length === correct.length &&
+      userLetters.every((l, i) => l === correct[i]);
+    detail.innerHTML = '';
+    if (allMatch) {
+      fb.className = 'feedback success';
+      fb.textContent = '✓ Perfect — sequence correct!';
+    } else {
+      fb.className = 'feedback error';
+      const diff = Math.abs(userLetters.length - correct.length);
+      const wrongCount = correct.reduce((acc, l, i) => acc + (userLetters[i] !== l ? 1 : 0), 0);
+      fb.textContent = `✗ Not quite — ${wrongCount} position${wrongCount !== 1 ? 's' : ''} off${diff ? `, length diff: ${diff}` : ''}.`;
+      detail.appendChild(buildCompareRow('Correct', correct, userLetters, true));
+      detail.appendChild(buildCompareRow('Yours',   userLetters, correct, false));
+    }
+  }
+
+  function buildCompareRow(label, source, ref, isCorrect) {
+    const row = document.createElement('div');
+    row.className = 'feedback-row';
+    const lbl = document.createElement('span');
+    lbl.className = 'feedback-row-label';
+    lbl.textContent = label;
+    row.appendChild(lbl);
+    const chars = document.createElement('span');
+    chars.className = 'feedback-chars';
+    source.forEach((letter, i) => {
+      const span = document.createElement('span');
+      const refLetter = ref[i];
+      if (isCorrect) {
+        span.className = refLetter === letter ? 'char-match' : 'char-miss';
+      } else {
+        if (i >= ref.length) span.className = 'char-extra';
+        else span.className = ref[i] === letter ? 'char-match' : 'char-miss';
+      }
+      span.textContent = letter;
+      if (i > 0 && i % 2 === 0) {
+        const spacer = document.createElement('span');
+        spacer.style.display = 'inline-block';
+        spacer.style.width = '0.4em';
+        chars.appendChild(spacer);
+      }
+      chars.appendChild(span);
+    });
+    row.appendChild(chars);
+    return row;
+  }
+
+  generateNew();
+
+  /* ═══════════════════════════════
+     STROOP GAME LOGIC
+  ═══════════════════════════════ */
+  const STROOP_COLORS = [
+    { name: 'RED',    hex: '#f87171' },
+    { name: 'BLUE',   hex: '#60a5fa' },
+    { name: 'GREEN',  hex: '#4ade80' },
+    { name: 'YELLOW', hex: '#fde047' },
+  ];
+
+  let stroopDuration = 150;
+  let stroopTimeLeft = 150;
+  let stroopInterval = null;
+  let stroopScore = 0;
+  let stroopStreak = 0;
+  let stroopBestStreak = 0;
+  let stroopTotal = 0;
+  let stroopCorrectTotal = 0;
+  let stroopCurrentInk = null;
+  let stroopCurrentWord = null;
+  let canAnswer = true;
+
+  function selectDuration(sec) {
+    stroopDuration = sec;
+    document.querySelectorAll('.stroop-duration-btn').forEach(b => {
+      b.classList.toggle('selected', parseInt(b.dataset.sec) === sec);
+    });
+  }
+
+  function openStroop() {
+    document.getElementById('stroopOverlay').classList.add('visible');
+    document.getElementById('stroopStartScreen').style.display = 'flex';
+    document.getElementById('stroopActiveMain').classList.remove('visible');
+    document.getElementById('stroopEnd').classList.remove('visible');
+  }
+
+  function closeStroop() {
+    stopStroopTimer();
+    document.getElementById('stroopOverlay').classList.remove('visible');
+    document.getElementById('btnStroop').classList.remove('active');
+  }
+
+  function startStroop() {
+    document.getElementById('stroopStartScreen').style.display = 'none';
+    document.getElementById('stroopActiveMain').classList.add('visible');
+    document.getElementById('stroopEnd').classList.remove('visible');
+
+    stroopTimeLeft = stroopDuration;
+    stroopScore = 0;
+    stroopStreak = 0;
+    stroopBestStreak = 0;
+    stroopTotal = 0;
+    stroopCorrectTotal = 0;
+    canAnswer = true;
+
+    updateStroopStats();
+    buildColorButtons();
+    nextStroopWord();
+    startStroopTimer();
+
+    document.getElementById('btnStroop').classList.add('active');
+  }
+
+  function buildColorButtons() {
+    const container = document.getElementById('stroopButtons');
+    container.innerHTML = '';
+    STROOP_COLORS.forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'stroop-btn';
+      btn.textContent = c.name;
+      btn.style.color = c.hex;
+      btn.style.borderColor = c.hex;
+      btn.dataset.color = c.name;
+      btn.addEventListener('click', () => handleStroopAnswer(c.name, btn));
+      container.appendChild(btn);
+    });
+  }
+
+  function nextStroopWord() {
+    const wordColor = STROOP_COLORS[Math.floor(Math.random() * STROOP_COLORS.length)];
+    let inkColor;
+    do {
+      inkColor = STROOP_COLORS[Math.floor(Math.random() * STROOP_COLORS.length)];
+    } while (inkColor.name === wordColor.name);
+
+    stroopCurrentWord = wordColor.name;
+    stroopCurrentInk = inkColor.name;
+
+    const wordEl = document.getElementById('stroopWord');
+    wordEl.classList.add('flash-out');
+    setTimeout(() => {
+      wordEl.textContent = wordColor.name;
+      wordEl.style.color = inkColor.hex;
+      wordEl.classList.remove('flash-out');
+      wordEl.classList.add('flash-in');
+      setTimeout(() => wordEl.classList.remove('flash-in'), 150);
+      canAnswer = true;
+    }, 90);
+  }
+
+  function handleStroopAnswer(chosen, btnEl) {
+    if (!canAnswer || stroopTimeLeft <= 0) return;
+    canAnswer = false;
+    stroopTotal++;
+
+    const correct = chosen === stroopCurrentInk;
+    if (correct) {
+      stroopCorrectTotal++;
+      stroopStreak++;
+      if (stroopStreak > stroopBestStreak) stroopBestStreak = stroopStreak;
+      // Bonus for streak
+      const bonus = stroopStreak >= 5 ? 2 : 1;
+      stroopScore += bonus;
+      btnEl.classList.add('correct-flash');
+      setTimeout(() => btnEl.classList.remove('correct-flash'), 300);
+    } else {
+      stroopStreak = 0;
+      btnEl.classList.add('wrong-flash');
+      setTimeout(() => btnEl.classList.remove('wrong-flash'), 350);
+      // Brief red flash on word area
+      document.getElementById('stroopWord').style.opacity = '0.4';
+      setTimeout(() => document.getElementById('stroopWord').style.opacity = '1', 200);
+    }
+
+    updateStroopStats();
+    setTimeout(() => nextStroopWord(), correct ? 120 : 300);
+  }
+
+  function updateStroopStats() {
+    document.getElementById('stroopScore').textContent = stroopScore;
+    const streakEl = document.getElementById('stroopStreak');
+    streakEl.textContent = stroopStreak;
+    streakEl.classList.toggle('streak-fire', stroopStreak >= 5);
+    const acc = stroopTotal > 0
+      ? Math.round((stroopCorrectTotal / stroopTotal) * 100) + '%'
+      : '—';
+    document.getElementById('stroopAccuracy').textContent = acc;
+  }
+
+  function startStroopTimer() {
+    stopStroopTimer();
+    updateTimerDisplay();
+    stroopInterval = setInterval(() => {
+      stroopTimeLeft--;
+      updateTimerDisplay();
+      if (stroopTimeLeft <= 0) {
+        stopStroopTimer();
+        endStroop();
+      }
+    }, 1000);
+  }
+
+  function stopStroopTimer() {
+    if (stroopInterval) { clearInterval(stroopInterval); stroopInterval = null; }
+  }
+
+  function updateTimerDisplay() {
+    const mins = Math.floor(stroopTimeLeft / 60);
+    const secs = stroopTimeLeft % 60;
+    const label = `${mins}:${secs.toString().padStart(2, '0')}`;
+    const pct = (stroopTimeLeft / stroopDuration) * 100;
+
+    const timeEl = document.getElementById('stroopTimeVal');
+    const barEl  = document.getElementById('stroopBarFill');
+
+    timeEl.textContent = label;
+    barEl.style.width = pct + '%';
+
+    const warn = stroopTimeLeft <= 30;
+    const danger = stroopTimeLeft <= 10;
+
+    timeEl.classList.toggle('warning', warn && !danger);
+    timeEl.classList.toggle('danger', danger);
+    barEl.classList.toggle('warning', warn && !danger);
+    barEl.classList.toggle('danger', danger);
+  }
+
+  function endStroop() {
+    canAnswer = false;
+    document.getElementById('stroopActiveMain').classList.remove('visible');
+    const endScreen = document.getElementById('stroopEnd');
+    endScreen.classList.add('visible');
+
+    document.getElementById('endScore').textContent = stroopScore;
+    document.getElementById('endCorrect').textContent = stroopCorrectTotal;
+    document.getElementById('endBestStreak').textContent = stroopBestStreak;
+
+    const accPct = stroopTotal > 0
+      ? Math.round((stroopCorrectTotal / stroopTotal) * 100)
+      : 0;
+    document.getElementById('endAccuracyLabel').textContent = `Accuracy: ${accPct}% (${stroopCorrectTotal}/${stroopTotal})`;
+    // animate bar after a tick
+    setTimeout(() => {
+      document.getElementById('endAccuracyFill').style.width = accPct + '%';
+    }, 80);
+
+    document.getElementById('btnStroop').classList.remove('active');
+  }
+
+  // Close on backdrop click
+  document.getElementById('stroopOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeStroop();
+  });
+</script>
+
+</body>
+</html>
