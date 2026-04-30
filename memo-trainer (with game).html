@@ -20,733 +20,167 @@
     --success: #7fff6b;
     --error: #ff4560;
     --pair-gap: 0.55em;
-    --stroop-bg: #0d0f14;
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
-    background: var(--bg);
-    color: var(--text);
+    background: var(--bg); color: var(--text);
     font-family: 'Share Tech Mono', monospace;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 2rem 1rem;
-    overflow-x: hidden;
+    min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 2rem 1rem; overflow-x: hidden;
   }
-
   body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
+    content: ''; position: fixed; inset: 0;
+    background-image: linear-gradient(rgba(0,229,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,229,255,0.03) 1px,transparent 1px);
+    background-size: 40px 40px; pointer-events: none; z-index: 0;
   }
+  .wrapper { position:relative; z-index:1; width:100%; max-width:820px; display:flex; flex-direction:column; gap:2rem; }
+  header { text-align:center; }
+  .title { font-family:'Orbitron',sans-serif; font-weight:900; font-size:clamp(1.4rem,4vw,2.2rem); letter-spacing:.18em; color:var(--accent); text-shadow:0 0 20px rgba(0,229,255,.4),0 0 60px rgba(0,229,255,.15); text-transform:uppercase; }
+  .subtitle { font-size:.75rem; letter-spacing:.3em; color:var(--text-dim); margin-top:.4rem; text-transform:uppercase; }
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:2rem 2.5rem; position:relative; overflow:hidden; }
+  .card::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:.6; }
+  .row-label { font-size:.65rem; letter-spacing:.35em; color:var(--text-dim); text-transform:uppercase; margin-bottom:.5rem; }
+  .letter-row { display:flex; flex-wrap:wrap; align-items:center; gap:.2rem var(--pair-gap); min-height:3.2rem; margin-bottom:.4rem; }
+  .pair { display:inline-flex; gap:0; font-family:'Orbitron',sans-serif; font-weight:700; font-size:clamp(1.5rem,3.5vw,2.2rem); letter-spacing:.06em; color:var(--text); transition:color .2s; }
+  .pair .letter { display:inline-block; transition:all .15s; }
+  .pair .letter:hover { color:var(--accent); }
+  .singleton { font-family:'Orbitron',sans-serif; font-weight:700; font-size:clamp(1.5rem,3.5vw,2.2rem); color:var(--accent2); letter-spacing:.06em; margin-left:.15em; transition:all .15s; }
+  .row-divider { height:1px; background:var(--border); margin:1.2rem 0; }
+  .row-meta { font-size:.65rem; color:var(--text-dim); letter-spacing:.2em; margin-top:.3rem; }
+  .letter-row.hidden .pair,.letter-row.hidden .singleton { color:transparent; text-shadow:none; background:var(--text-muted); border-radius:2px; user-select:none; }
+  .letter-row.hidden .pair { min-width:2.6ch; }
+  .controls { display:flex; gap:.75rem; flex-wrap:wrap; justify-content:center; }
+  .btn { font-family:'Orbitron',sans-serif; font-weight:700; font-size:.7rem; letter-spacing:.2em; text-transform:uppercase; border:1px solid; border-radius:3px; padding:.7rem 1.6rem; cursor:pointer; transition:all .15s ease; background:transparent; position:relative; overflow:hidden; }
+  .btn::after { content:''; position:absolute; inset:0; background:currentColor; opacity:0; transition:opacity .15s; }
+  .btn:hover::after { opacity:.07; } .btn:active::after { opacity:.15; }
+  .btn-hide { color:var(--accent); border-color:var(--accent); } .btn-hide:hover { box-shadow:0 0 14px rgba(0,229,255,.25); }
+  .btn-new { color:var(--accent2); border-color:var(--accent2); } .btn-new:hover { box-shadow:0 0 14px rgba(255,107,53,.25); }
+  .btn-check { color:var(--accent3); border-color:var(--accent3); } .btn-check:hover { box-shadow:0 0 14px rgba(127,255,107,.25); }
+  .btn-stroop { color:#c084fc; border-color:#c084fc; } .btn-stroop:hover { box-shadow:0 0 14px rgba(192,132,252,.3); }
+  .btn-stroop.active { color:var(--error); border-color:var(--error); animation:stroopPulse 1.5s ease-in-out infinite; }
+  @keyframes stroopPulse { 0%,100%{box-shadow:0 0 8px rgba(255,69,96,.3);}50%{box-shadow:0 0 20px rgba(255,69,96,.6);} }
+  .answer-section { background:var(--surface); border:1px solid var(--border); border-radius:4px; padding:1.5rem 2rem; position:relative; }
+  .answer-section::before { content:''; position:absolute; top:0;left:0;right:0; height:2px; background:linear-gradient(90deg,transparent,var(--accent3),transparent); opacity:.5; }
+  .answer-label { font-size:.65rem; letter-spacing:.35em; color:var(--text-dim); text-transform:uppercase; margin-bottom:.8rem; }
+  .answer-hint { font-size:.6rem; color:var(--text-muted); letter-spacing:.15em; margin-bottom:.8rem; }
+  .answer-input { width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:3px; color:var(--text); font-family:'Orbitron',sans-serif; font-weight:700; font-size:clamp(1rem,2.5vw,1.4rem); letter-spacing:.12em; padding:.9rem 1rem; outline:none; transition:border-color .2s,box-shadow .2s; text-transform:uppercase; }
+  .answer-input:focus { border-color:var(--accent3); box-shadow:0 0 0 2px rgba(127,255,107,.08); }
+  .answer-input::placeholder { color:var(--text-muted); font-size:.75rem; letter-spacing:.1em; }
+  .feedback { margin-top:1rem; font-size:.75rem; letter-spacing:.12em; min-height:1.5rem; transition:all .2s; }
+  .feedback.success { color:var(--success); } .feedback.error { color:var(--error); }
+  .feedback-detail { margin-top:.6rem; display:flex; flex-direction:column; gap:.3rem; }
+  .feedback-row { display:flex; align-items:flex-start; gap:.8rem; font-size:.7rem; }
+  .feedback-row-label { color:var(--text-dim); min-width:4ch; letter-spacing:.1em; }
+  .feedback-chars { display:flex; flex-wrap:wrap; gap:.15rem; font-family:'Orbitron',sans-serif; font-size:.8rem; }
+  .char-match{color:var(--success);} .char-miss{color:var(--error);background:rgba(255,69,96,.12);border-radius:2px;padding:0 2px;} .char-extra{color:var(--accent2);background:rgba(255,107,53,.12);border-radius:2px;padding:0 2px;}
+  @keyframes scanFlash{0%{transform:translateY(-100%);opacity:.5;}100%{transform:translateY(100vh);opacity:0;}}
+  .scan-flash{position:fixed;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,var(--accent),transparent);pointer-events:none;z-index:999;animation:scanFlash .5s ease-out forwards;}
+  @keyframes revealPulse{0%{opacity:0;transform:scale(.95);}100%{opacity:1;transform:scale(1);}}
+  .letter-row .pair,.letter-row .singleton{animation:revealPulse .25s ease-out both;}
+  .letter-row .pair:nth-child(1){animation-delay:0s;}.letter-row .pair:nth-child(2){animation-delay:.03s;}.letter-row .pair:nth-child(3){animation-delay:.06s;}.letter-row .pair:nth-child(4){animation-delay:.09s;}.letter-row .pair:nth-child(5){animation-delay:.12s;}.letter-row .pair:nth-child(6){animation-delay:.15s;}.letter-row .pair:nth-child(7){animation-delay:.18s;}
+  footer{text-align:center;font-size:.6rem;letter-spacing:.25em;color:var(--text-muted);text-transform:uppercase;}
 
-  .wrapper {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 820px;
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-  }
+  /* ─── STROOP ─── */
+  .stroop-overlay{position:fixed;inset:0;background:rgba(5,7,10,.93);backdrop-filter:blur(6px);z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;padding:2rem 1rem;opacity:0;pointer-events:none;transition:opacity .3s ease;}
+  .stroop-overlay.visible{opacity:1;pointer-events:all;}
+  .stroop-panel{background:#0d0f14;border:1px solid #1e2a3a;border-radius:6px;padding:2rem 2.5rem;width:min(580px,94vw);display:flex;flex-direction:column;align-items:center;gap:1.5rem;position:relative;overflow:hidden;margin:auto;}
+  .stroop-panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#c084fc,transparent);opacity:.8;}
+  .stroop-header{display:flex;flex-direction:column;align-items:center;gap:.4rem;width:100%;}
+  .stroop-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1rem;letter-spacing:.25em;color:#c084fc;text-transform:uppercase;text-shadow:0 0 20px rgba(192,132,252,.4);}
+  .stroop-subtitle{font-size:.6rem;letter-spacing:.25em;color:var(--text-dim);text-transform:uppercase;}
 
-  header { text-align: center; }
-
-  .title {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: clamp(1.4rem, 4vw, 2.2rem);
-    letter-spacing: 0.18em;
-    color: var(--accent);
-    text-shadow: 0 0 20px rgba(0,229,255,0.4), 0 0 60px rgba(0,229,255,0.15);
-    text-transform: uppercase;
-  }
-
-  .subtitle {
-    font-size: 0.75rem;
-    letter-spacing: 0.3em;
-    color: var(--text-dim);
-    margin-top: 0.4rem;
-    text-transform: uppercase;
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 2rem 2.5rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0.6;
-  }
-
-  .row-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.35em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-  }
-
-  .letter-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.2rem var(--pair-gap);
-    min-height: 3.2rem;
-    margin-bottom: 0.4rem;
-  }
-
-  .pair {
-    display: inline-flex;
-    gap: 0;
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: clamp(1.5rem, 3.5vw, 2.2rem);
-    letter-spacing: 0.06em;
-    color: var(--text);
-    transition: color 0.2s;
-  }
-
-  .pair .letter { display: inline-block; transition: all 0.15s; }
-  .pair .letter:hover { color: var(--accent); }
-
-  .singleton {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: clamp(1.5rem, 3.5vw, 2.2rem);
-    color: var(--accent2);
-    letter-spacing: 0.06em;
-    margin-left: 0.15em;
-    transition: all 0.15s;
-  }
-
-  .row-divider { height: 1px; background: var(--border); margin: 1.2rem 0; }
-
-  .row-meta {
-    font-size: 0.65rem;
-    color: var(--text-dim);
-    letter-spacing: 0.2em;
-    margin-top: 0.3rem;
-  }
-
-  .letter-row.hidden .pair,
-  .letter-row.hidden .singleton {
-    color: transparent;
-    text-shadow: none;
-    background: var(--text-muted);
-    border-radius: 2px;
-    user-select: none;
-  }
-
-  .letter-row.hidden .pair { min-width: 2.6ch; }
-
-  .controls {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    justify-content: center;
-  }
-
-  .btn {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    border: 1px solid;
-    border-radius: 3px;
-    padding: 0.7rem 1.6rem;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    background: transparent;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .btn::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: currentColor;
-    opacity: 0;
-    transition: opacity 0.15s;
-  }
-
-  .btn:hover::after { opacity: 0.07; }
-  .btn:active::after { opacity: 0.15; }
-
-  .btn-hide { color: var(--accent); border-color: var(--accent); }
-  .btn-hide:hover { box-shadow: 0 0 14px rgba(0,229,255,0.25); }
-
-  .btn-new { color: var(--accent2); border-color: var(--accent2); }
-  .btn-new:hover { box-shadow: 0 0 14px rgba(255,107,53,0.25); }
-
-  .btn-check { color: var(--accent3); border-color: var(--accent3); }
-  .btn-check:hover { box-shadow: 0 0 14px rgba(127,255,107,0.25); }
-
-  .btn-stroop {
-    color: #c084fc;
-    border-color: #c084fc;
-  }
-  .btn-stroop:hover { box-shadow: 0 0 14px rgba(192,132,252,0.3); }
-  .btn-stroop.active {
-    color: var(--error);
-    border-color: var(--error);
-    animation: stroopPulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes stroopPulse {
-    0%, 100% { box-shadow: 0 0 8px rgba(255,69,96,0.3); }
-    50% { box-shadow: 0 0 20px rgba(255,69,96,0.6); }
-  }
-
-  .answer-section {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    padding: 1.5rem 2rem;
-    position: relative;
-  }
-
-  .answer-section::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--accent3), transparent);
-    opacity: 0.5;
-  }
-
-  .answer-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.35em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    margin-bottom: 0.8rem;
-  }
-
-  .answer-hint {
-    font-size: 0.6rem;
-    color: var(--text-muted);
-    letter-spacing: 0.15em;
-    margin-bottom: 0.8rem;
-  }
-
-  .answer-input {
-    width: 100%;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 3px;
-    color: var(--text);
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: clamp(1rem, 2.5vw, 1.4rem);
-    letter-spacing: 0.12em;
-    padding: 0.9rem 1rem;
-    outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
-    text-transform: uppercase;
-  }
-
-  .answer-input:focus {
-    border-color: var(--accent3);
-    box-shadow: 0 0 0 2px rgba(127,255,107,0.08);
-  }
-
-  .answer-input::placeholder {
-    color: var(--text-muted);
-    font-size: 0.75rem;
-    letter-spacing: 0.1em;
-  }
-
-  .feedback {
-    margin-top: 1rem;
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    min-height: 1.5rem;
-    transition: all 0.2s;
-  }
-
-  .feedback.success { color: var(--success); }
-  .feedback.error { color: var(--error); }
-
-  .feedback-detail {
-    margin-top: 0.6rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-  }
-
-  .feedback-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.8rem;
-    font-size: 0.7rem;
-  }
-
-  .feedback-row-label { color: var(--text-dim); min-width: 4ch; letter-spacing: 0.1em; }
-
-  .feedback-chars {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.15rem;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 0.8rem;
-  }
-
-  .char-match { color: var(--success); }
-  .char-miss  { color: var(--error); background: rgba(255,69,96,0.12); border-radius: 2px; padding: 0 2px; }
-  .char-extra { color: var(--accent2); background: rgba(255,107,53,0.12); border-radius: 2px; padding: 0 2px; }
-
-  @keyframes scanFlash {
-    0%   { transform: translateY(-100%); opacity: 0.5; }
-    100% { transform: translateY(100vh); opacity: 0; }
-  }
-
-  .scan-flash {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    pointer-events: none;
-    z-index: 999;
-    animation: scanFlash 0.5s ease-out forwards;
-  }
-
-  @keyframes revealPulse {
-    0%   { opacity: 0; transform: scale(0.95); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-
-  .letter-row .pair,
-  .letter-row .singleton {
-    animation: revealPulse 0.25s ease-out both;
-  }
-
-  .letter-row .pair:nth-child(1) { animation-delay: 0s; }
-  .letter-row .pair:nth-child(2) { animation-delay: 0.03s; }
-  .letter-row .pair:nth-child(3) { animation-delay: 0.06s; }
-  .letter-row .pair:nth-child(4) { animation-delay: 0.09s; }
-  .letter-row .pair:nth-child(5) { animation-delay: 0.12s; }
-  .letter-row .pair:nth-child(6) { animation-delay: 0.15s; }
-  .letter-row .pair:nth-child(7) { animation-delay: 0.18s; }
-
-  footer {
-    text-align: center;
-    font-size: 0.6rem;
-    letter-spacing: 0.25em;
-    color: var(--text-muted);
-    text-transform: uppercase;
-  }
-
-  /* ─── STROOP OVERLAY ─── */
-  .stroop-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(5, 7, 10, 0.92);
-    backdrop-filter: blur(6px);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-  }
-
-  .stroop-overlay.visible {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  .stroop-panel {
-    background: #0d0f14;
-    border: 1px solid #1e2a3a;
-    border-radius: 6px;
-    padding: 2.5rem 3rem;
-    width: min(560px, 92vw);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.8rem;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stroop-panel::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #c084fc, transparent);
-    opacity: 0.8;
-  }
-
-  .stroop-header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
-    width: 100%;
-  }
-
-  .stroop-title {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: 1rem;
-    letter-spacing: 0.25em;
-    color: #c084fc;
-    text-transform: uppercase;
-    text-shadow: 0 0 20px rgba(192,132,252,0.4);
-  }
-
-  .stroop-subtitle {
-    font-size: 0.6rem;
-    letter-spacing: 0.25em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-  }
+  /* Settings */
+  .stroop-settings{display:flex;flex-direction:column;gap:1.1rem;width:100%;}
+  .setting-group{display:flex;flex-direction:column;gap:.5rem;}
+  .setting-label-row{display:flex;align-items:center;justify-content:space-between;}
+  .setting-label{font-size:.65rem;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase;}
+  .setting-badge{font-size:.55rem;letter-spacing:.15em;color:var(--text-muted);background:#1a1f2a;border:1px solid #2a3344;border-radius:2px;padding:.2rem .5rem;text-transform:uppercase;}
+  .setting-options{display:flex;gap:.4rem;flex-wrap:wrap;}
+  .opt-btn{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;border:1px solid #2a3344;border-radius:3px;padding:.4rem .8rem;cursor:pointer;background:transparent;color:var(--text-dim);transition:all .15s;white-space:nowrap;}
+  .opt-btn:hover{border-color:#c084fc;color:#c084fc;}
+  .opt-btn.selected{border-color:#c084fc;color:#c084fc;background:rgba(192,132,252,.08);}
+  .toggle-row{display:flex;align-items:center;gap:.9rem;}
+  .toggle-switch{position:relative;width:40px;height:22px;cursor:pointer;flex-shrink:0;}
+  .toggle-switch input{opacity:0;width:0;height:0;position:absolute;}
+  .toggle-track{position:absolute;inset:0;background:#1a1f2a;border:1px solid #2a3344;border-radius:11px;transition:all .2s;}
+  .toggle-track::after{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;background:var(--text-muted);border-radius:50%;transition:all .2s;}
+  .toggle-switch input:checked + .toggle-track{background:rgba(192,132,252,.15);border-color:#c084fc;}
+  .toggle-switch input:checked + .toggle-track::after{transform:translateX(18px);background:#c084fc;}
+  .toggle-desc{font-size:.62rem;letter-spacing:.1em;color:var(--text-dim);line-height:1.6;}
+  .toggle-desc strong{color:var(--text);font-weight:normal;}
+  .setting-divider{height:1px;background:#1a1f2a;width:100%;}
+  .colour-preview{display:flex;gap:.45rem;margin-top:.2rem;flex-wrap:wrap;align-items:center;}
 
   /* Timer bar */
-  .stroop-timer-wrap {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
+  .stroop-timer-wrap{display:flex;flex-direction:column;gap:.5rem;width:100%;}
+  .stroop-timer-row{display:flex;justify-content:space-between;align-items:baseline;}
+  .stroop-timer-label{font-size:.6rem;letter-spacing:.2em;color:var(--text-dim);}
+  .stroop-time-val{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.1rem;color:#c084fc;letter-spacing:.1em;transition:color .3s;}
+  .stroop-time-val.warning{color:var(--accent2);} .stroop-time-val.danger{color:var(--error);}
+  .stroop-bar-track{width:100%;height:4px;background:var(--text-muted);border-radius:2px;overflow:hidden;}
+  .stroop-bar-fill{height:100%;background:#c084fc;border-radius:2px;transition:width .1s linear,background .3s;}
+  .stroop-bar-fill.warning{background:var(--accent2);} .stroop-bar-fill.danger{background:var(--error);}
 
-  .stroop-timer-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-  }
+  /* Round banner */
+  .round-banner{font-family:'Orbitron',sans-serif;font-weight:900;font-size:.62rem;letter-spacing:.25em;text-transform:uppercase;padding:.35rem 1rem;border-radius:2px;border:1px solid;transition:all .3s;}
+  .round-banner.ink{color:#c084fc;border-color:rgba(192,132,252,.4);background:rgba(192,132,252,.06);}
+  .round-banner.word{color:var(--accent2);border-color:rgba(255,107,53,.4);background:rgba(255,107,53,.06);}
 
-  .stroop-timer-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.2em;
-    color: var(--text-dim);
-  }
-
-  .stroop-time-val {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #c084fc;
-    letter-spacing: 0.1em;
-    transition: color 0.3s;
-  }
-
-  .stroop-time-val.warning { color: var(--accent2); }
-  .stroop-time-val.danger  { color: var(--error); }
-
-  .stroop-bar-track {
-    width: 100%;
-    height: 4px;
-    background: var(--text-muted);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-
-  .stroop-bar-fill {
-    height: 100%;
-    background: #c084fc;
-    border-radius: 2px;
-    transition: width 0.1s linear, background 0.3s;
-    transform-origin: left;
-  }
-
-  .stroop-bar-fill.warning { background: var(--accent2); }
-  .stroop-bar-fill.danger  { background: var(--error); }
-
-  /* Word display */
-  .stroop-word-area {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 6rem;
-    width: 100%;
-  }
-
-  .stroop-word {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: clamp(2.5rem, 8vw, 4rem);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    transition: opacity 0.1s;
-    user-select: none;
-  }
-
-  .stroop-word.flash-out { opacity: 0; transform: scale(0.92); transition: opacity 0.08s, transform 0.08s; }
-  .stroop-word.flash-in  { opacity: 1; transform: scale(1); transition: opacity 0.12s, transform 0.12s; }
+  /* Word area */
+  .stroop-word-area{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:5.5rem;width:100%;position:relative;}
+  .stroop-word{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(2.2rem,7vw,3.6rem);letter-spacing:.1em;text-transform:uppercase;user-select:none;transition:opacity .08s,transform .08s;}
+  .stroop-word.flash-out{opacity:0;transform:scale(.92);}
+  .stroop-word.flash-in{opacity:1;transform:scale(1);transition:opacity .12s,transform .12s;}
+  .word-timer-track{width:100%;height:3px;background:transparent;border-radius:2px;overflow:hidden;position:absolute;bottom:0;left:0;right:0;}
+  .word-timer-fill{height:100%;border-radius:2px;background:rgba(192,132,252,.5);}
 
   /* Instruction */
-  .stroop-instruction {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-    text-align: center;
-  }
+  .stroop-instruction{font-size:.65rem;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase;text-align:center;}
+  .stroop-instruction .hi-ink{color:#c084fc;font-weight:700;}
+  .stroop-instruction .hi-word{color:var(--accent2);font-weight:700;}
 
   /* Colour buttons */
-  .stroop-buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.6rem;
-    width: 100%;
-  }
+  .stroop-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:.45rem;width:100%;}
+  .stroop-buttons.cols-6{grid-template-columns:repeat(3,1fr);}
+  .stroop-buttons.cols-8{grid-template-columns:repeat(4,1fr);}
+  .stroop-btn{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;border:2px solid;border-radius:3px;padding:.6rem .3rem;cursor:pointer;background:transparent;transition:all .1s;}
+  .stroop-btn:hover{filter:brightness(1.25);transform:translateY(-1px);}
+  .stroop-btn:active{transform:translateY(0);filter:brightness(.9);}
+  .stroop-btn.correct-flash{animation:cFlash .25s ease-out;}
+  .stroop-btn.wrong-flash{animation:wFlash .3s ease-out;}
+  @keyframes cFlash{0%{background:rgba(127,255,107,.3);}100%{background:transparent;}}
+  @keyframes wFlash{0%{background:rgba(255,69,96,.35);transform:translateX(-3px);}33%{transform:translateX(3px);}66%{transform:translateX(-2px);}100%{background:transparent;transform:translateX(0);}}
 
-  .stroop-btn {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 0.65rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    border: 2px solid;
-    border-radius: 3px;
-    padding: 0.7rem 0.4rem;
-    cursor: pointer;
-    background: transparent;
-    transition: all 0.1s;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .stroop-btn:hover { filter: brightness(1.2); transform: translateY(-1px); }
-  .stroop-btn:active { transform: translateY(0); filter: brightness(0.9); }
-
-  .stroop-btn.correct-flash {
-    animation: correctFlash 0.25s ease-out;
-  }
-
-  .stroop-btn.wrong-flash {
-    animation: wrongFlash 0.3s ease-out;
-  }
-
-  @keyframes correctFlash {
-    0%   { background: rgba(127,255,107,0.3); }
-    100% { background: transparent; }
-  }
-
-  @keyframes wrongFlash {
-    0%   { background: rgba(255,69,96,0.35); transform: translateX(-3px); }
-    33%  { transform: translateX(3px); }
-    66%  { transform: translateX(-2px); }
-    100% { background: transparent; transform: translateX(0); }
-  }
-
-  /* Score + streak */
-  .stroop-stats {
-    display: flex;
-    gap: 2rem;
-    width: 100%;
-    justify-content: center;
-  }
-
-  .stroop-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.2rem;
-  }
-
-  .stroop-stat-label {
-    font-size: 0.55rem;
-    letter-spacing: 0.25em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-  }
-
-  .stroop-stat-val {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 1.3rem;
-    color: var(--text);
-    letter-spacing: 0.08em;
-    transition: color 0.2s;
-  }
-
-  .stroop-stat-val.streak-fire { color: var(--accent2); }
+  /* Stats */
+  .stroop-stats{display:flex;gap:1.5rem;width:100%;justify-content:center;}
+  .stroop-stat{display:flex;flex-direction:column;align-items:center;gap:.2rem;}
+  .stroop-stat-label{font-size:.55rem;letter-spacing:.25em;color:var(--text-dim);text-transform:uppercase;}
+  .stroop-stat-val{font-family:'Orbitron',sans-serif;font-weight:700;font-size:1.3rem;color:var(--text);letter-spacing:.08em;transition:color .2s;}
+  .stroop-stat-val.streak-fire{color:var(--accent2);}
 
   /* End screen */
-  .stroop-end {
-    display: none;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.4rem;
-    width: 100%;
-  }
+  .stroop-end{display:none;flex-direction:column;align-items:center;gap:1.4rem;width:100%;}
+  .stroop-end.visible{display:flex;}
+  .stroop-end-title{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.2rem;letter-spacing:.2em;color:#c084fc;text-transform:uppercase;}
+  .stroop-end-stats{display:flex;gap:1.8rem;justify-content:center;flex-wrap:wrap;}
+  .stroop-end-stat{display:flex;flex-direction:column;align-items:center;gap:.3rem;}
+  .stroop-end-stat-val{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.8rem;color:var(--text);}
+  .stroop-end-stat-label{font-size:.55rem;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase;}
+  .stroop-accuracy-bar{width:100%;height:6px;background:var(--text-muted);border-radius:3px;overflow:hidden;}
+  .stroop-accuracy-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--error),var(--accent2),var(--success));transition:width .8s cubic-bezier(.34,1.56,.64,1);}
+  .stroop-accuracy-label{font-size:.65rem;letter-spacing:.2em;color:var(--text-dim);text-align:center;}
 
-  .stroop-end.visible { display: flex; }
+  /* Shared action buttons */
+  .stroop-action-btn{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;border:1px solid #c084fc;border-radius:3px;padding:.7rem 2rem;cursor:pointer;background:transparent;color:#c084fc;transition:all .15s;}
+  .stroop-action-btn:hover{background:rgba(192,132,252,.1);box-shadow:0 0 16px rgba(192,132,252,.3);}
+  .stroop-ghost-btn{font-family:'Orbitron',sans-serif;font-weight:700;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;border:1px solid #2a3344;border-radius:3px;padding:.55rem 1.4rem;cursor:pointer;background:transparent;color:var(--text-dim);transition:all .15s;}
+  .stroop-ghost-btn:hover{border-color:#4a5568;color:var(--text);}
 
-  .stroop-end-title {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: 1.2rem;
-    letter-spacing: 0.2em;
-    color: #c084fc;
-    text-transform: uppercase;
-  }
-
-  .stroop-end-stats {
-    display: flex;
-    gap: 2.5rem;
-    justify-content: center;
-  }
-
-  .stroop-end-stat {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.3rem;
-  }
-
-  .stroop-end-stat-val {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 900;
-    font-size: 2rem;
-    color: var(--text);
-  }
-
-  .stroop-end-stat-label {
-    font-size: 0.55rem;
-    letter-spacing: 0.2em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-  }
-
-  .stroop-accuracy-bar {
-    width: 100%;
-    height: 6px;
-    background: var(--text-muted);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .stroop-accuracy-fill {
-    height: 100%;
-    border-radius: 3px;
-    background: linear-gradient(90deg, var(--error), var(--accent2), var(--success));
-    transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
-  }
-
-  .stroop-accuracy-label {
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    color: var(--text-dim);
-    text-align: center;
-  }
-
-  .stroop-close-btn {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 0.7rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    border: 1px solid #c084fc;
-    border-radius: 3px;
-    padding: 0.7rem 2rem;
-    cursor: pointer;
-    background: transparent;
-    color: #c084fc;
-    transition: all 0.15s;
-    margin-top: 0.5rem;
-  }
-
-  .stroop-close-btn:hover {
-    background: rgba(192,132,252,0.1);
-    box-shadow: 0 0 16px rgba(192,132,252,0.3);
-  }
-
-  .stroop-active-main { display: none; width: 100%; flex-direction: column; align-items: center; gap: 1.8rem; }
-  .stroop-active-main.visible { display: flex; }
-
-  /* Duration selector */
-  .stroop-duration-select {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-  }
-
-  .stroop-duration-btn {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 0.6rem;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    border: 1px solid #2a3344;
-    border-radius: 3px;
-    padding: 0.45rem 0.9rem;
-    cursor: pointer;
-    background: transparent;
-    color: var(--text-dim);
-    transition: all 0.15s;
-  }
-
-  .stroop-duration-btn.selected,
-  .stroop-duration-btn:hover {
-    border-color: #c084fc;
-    color: #c084fc;
-  }
-
-  .stroop-start-screen {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1.6rem;
-    width: 100%;
-  }
-
-  .stroop-start-desc {
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    color: var(--text-dim);
-    text-align: center;
-    line-height: 1.8;
-    max-width: 380px;
-  }
-
-  .stroop-start-btn {
-    font-family: 'Orbitron', sans-serif;
-    font-weight: 700;
-    font-size: 0.75rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    border: 1px solid #c084fc;
-    border-radius: 3px;
-    padding: 0.8rem 2.5rem;
-    cursor: pointer;
-    background: transparent;
-    color: #c084fc;
-    transition: all 0.15s;
-  }
-
-  .stroop-start-btn:hover {
-    background: rgba(192,132,252,0.1);
-    box-shadow: 0 0 20px rgba(192,132,252,0.35);
-  }
+  .stroop-active-main{display:none;width:100%;flex-direction:column;align-items:center;gap:1.3rem;}
+  .stroop-active-main.visible{display:flex;}
+  .stroop-start-screen{display:flex;flex-direction:column;align-items:center;gap:1.3rem;width:100%;}
+  .stroop-start-screen.hidden{display:none;}
 </style>
 </head>
 <body>
@@ -757,7 +191,7 @@
     <div class="subtitle">Blind Solving Memory Aid · A–X Alphabet</div>
   </header>
 
-  <div class="card" id="displayCard">
+  <div class="card">
     <div class="row-label">Row 1</div>
     <div class="letter-row" id="row1"></div>
     <div class="row-meta" id="meta1"></div>
@@ -777,15 +211,10 @@
   <div class="answer-section">
     <div class="answer-label">Your Answer</div>
     <div class="answer-hint">Type the full sequence — pairs separated by spaces (e.g. AB CD EF GH IJ KL M UV WX YZ AB CD)</div>
-    <input
-      class="answer-input"
-      id="answerInput"
-      type="text"
+    <input class="answer-input" id="answerInput" type="text"
       placeholder="Type your memorised sequence here..."
-      autocomplete="off"
-      spellcheck="false"
-      onkeydown="if(event.key==='Enter') checkAnswer()"
-    />
+      autocomplete="off" spellcheck="false"
+      onkeydown="if(event.key==='Enter') checkAnswer()" />
     <div class="feedback" id="feedback"></div>
     <div class="feedback-detail" id="feedbackDetail"></div>
   </div>
@@ -801,26 +230,87 @@
       <div class="stroop-subtitle">Cognitive Interference · BLD Simulation</div>
     </div>
 
-    <!-- Start screen -->
+    <!-- START / SETTINGS -->
     <div class="stroop-start-screen" id="stroopStartScreen">
-      <div class="stroop-start-desc">
-        Colour words are shown in mismatched ink colours.<br>
-        Identify the <strong style="color:#c084fc">INK COLOUR</strong>, not the word.<br><br>
-        This burns the same cognitive resources used during BLD memorisation — making it harder to rehearse your memo in the background.
-      </div>
-      <div>
-        <div class="stroop-stat-label" style="text-align:center;margin-bottom:0.5rem;">Duration</div>
-        <div class="stroop-duration-select" id="durationSelect">
-          <button class="stroop-duration-btn" data-sec="120" onclick="selectDuration(120)">2 min</button>
-          <button class="stroop-duration-btn selected" data-sec="150" onclick="selectDuration(150)">2:30</button>
-          <button class="stroop-duration-btn" data-sec="180" onclick="selectDuration(180)">3 min</button>
+      <div class="stroop-settings">
+
+        <!-- Duration -->
+        <div class="setting-group">
+          <div class="setting-label-row"><span class="setting-label">Duration</span></div>
+          <div class="setting-options" id="durationOpts">
+            <button class="opt-btn" data-sec="120" onclick="selectDuration(120)">2 min</button>
+            <button class="opt-btn selected" data-sec="150" onclick="selectDuration(150)">2 min 30</button>
+            <button class="opt-btn" data-sec="180" onclick="selectDuration(180)">3 min</button>
+          </div>
         </div>
+
+        <div class="setting-divider"></div>
+
+        <!-- Colour set -->
+        <div class="setting-group">
+          <div class="setting-label-row">
+            <span class="setting-label">Colour Set</span>
+            <span class="setting-badge" id="colourBadge">4 colours</span>
+          </div>
+          <div class="setting-options" id="colourOpts">
+            <button class="opt-btn selected" data-n="4" onclick="selectColours(4)">Standard · 4</button>
+            <button class="opt-btn" data-n="6" onclick="selectColours(6)">Extended · 6</button>
+            <button class="opt-btn" data-n="8" onclick="selectColours(8)">Full · 8</button>
+          </div>
+          <div class="colour-preview" id="colourPreview"></div>
+        </div>
+
+        <div class="setting-divider"></div>
+
+        <!-- Shrinking display -->
+        <div class="setting-group">
+          <div class="setting-label-row">
+            <span class="setting-label">Shrinking Display Time</span>
+            <span class="setting-badge" id="vanishBadge">Off</span>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle-switch">
+              <input type="checkbox" id="vanishToggle" onchange="toggleVanish(this.checked)">
+              <div class="toggle-track"></div>
+            </label>
+            <span class="toggle-desc">Word disappears after a time limit — <strong>window shrinks throughout the session.</strong></span>
+          </div>
+          <div class="setting-options" id="vanishSpeedOpts" style="display:none;margin-top:.2rem;">
+            <button class="opt-btn" data-ms="3000" onclick="selectVanishStart(3000)">Start 3 s</button>
+            <button class="opt-btn selected" data-ms="2000" onclick="selectVanishStart(2000)">Start 2 s</button>
+            <button class="opt-btn" data-ms="1500" onclick="selectVanishStart(1500)">Start 1.5 s</button>
+          </div>
+        </div>
+
+        <div class="setting-divider"></div>
+
+        <!-- Reverse rounds -->
+        <div class="setting-group">
+          <div class="setting-label-row">
+            <span class="setting-label">Reverse Rounds</span>
+            <span class="setting-badge" id="reverseBadge">Off</span>
+          </div>
+          <div class="toggle-row">
+            <label class="toggle-switch">
+              <input type="checkbox" id="reverseToggle" onchange="toggleReverse(this.checked)">
+              <div class="toggle-track"></div>
+            </label>
+            <span class="toggle-desc">Rule flips mid-session — identify the <strong>word</strong> instead of the ink colour.</span>
+          </div>
+          <div class="setting-options" id="reverseFreqOpts" style="display:none;margin-top:.2rem;">
+            <button class="opt-btn" data-freq="10" onclick="selectReverseFreq(10)">Flip every 10</button>
+            <button class="opt-btn selected" data-freq="15" onclick="selectReverseFreq(15)">Flip every 15</button>
+            <button class="opt-btn" data-freq="20" onclick="selectReverseFreq(20)">Flip every 20</button>
+          </div>
+        </div>
+
       </div>
-      <button class="stroop-start-btn" onclick="startStroop()">Start Game</button>
-      <button class="stroop-close-btn" onclick="closeStroop()" style="border-color:#2a3344;color:var(--text-dim);margin-top:-0.5rem;">Cancel</button>
+
+      <button class="stroop-action-btn" onclick="startStroop()">Start Game</button>
+      <button class="stroop-ghost-btn" onclick="closeStroop()">Cancel</button>
     </div>
 
-    <!-- Active game -->
+    <!-- ACTIVE GAME -->
     <div class="stroop-active-main" id="stroopActiveMain">
       <div class="stroop-timer-wrap">
         <div class="stroop-timer-row">
@@ -833,405 +323,351 @@
       </div>
 
       <div class="stroop-stats">
-        <div class="stroop-stat">
-          <div class="stroop-stat-label">Score</div>
-          <div class="stroop-stat-val" id="stroopScore">0</div>
-        </div>
-        <div class="stroop-stat">
-          <div class="stroop-stat-label">Streak</div>
-          <div class="stroop-stat-val" id="stroopStreak">0</div>
-        </div>
-        <div class="stroop-stat">
-          <div class="stroop-stat-label">Accuracy</div>
-          <div class="stroop-stat-val" id="stroopAccuracy">—</div>
-        </div>
+        <div class="stroop-stat"><div class="stroop-stat-label">Score</div><div class="stroop-stat-val" id="stroopScore">0</div></div>
+        <div class="stroop-stat"><div class="stroop-stat-label">Streak</div><div class="stroop-stat-val" id="stroopStreak">0</div></div>
+        <div class="stroop-stat"><div class="stroop-stat-label">Accuracy</div><div class="stroop-stat-val" id="stroopAccuracy">—</div></div>
+        <div class="stroop-stat" id="roundCountStat" style="display:none"><div class="stroop-stat-label">Round</div><div class="stroop-stat-val" id="stroopRound">1</div></div>
       </div>
 
-      <div class="stroop-instruction">What is the <span style="color:#c084fc;font-weight:700">ink colour</span> of this word?</div>
+      <div class="round-banner ink" id="roundBanner" style="display:none">Identify: Ink Colour</div>
+
+      <div class="stroop-instruction" id="stroopInstruction">
+        What is the <span class="hi-ink">ink colour</span> of this word?
+      </div>
 
       <div class="stroop-word-area">
         <div class="stroop-word" id="stroopWord">RED</div>
+        <div class="word-timer-track" id="wordTimerTrack" style="display:none">
+          <div class="word-timer-fill" id="wordTimerFill" style="width:100%"></div>
+        </div>
       </div>
 
       <div class="stroop-buttons" id="stroopButtons"></div>
+      <button class="stroop-ghost-btn" onclick="closeStroop()">End Session</button>
     </div>
 
-    <!-- End screen -->
+    <!-- END SCREEN -->
     <div class="stroop-end" id="stroopEnd">
       <div class="stroop-end-title">Session Complete</div>
       <div class="stroop-end-stats">
-        <div class="stroop-end-stat">
-          <div class="stroop-end-stat-val" id="endScore">0</div>
-          <div class="stroop-end-stat-label">Score</div>
-        </div>
-        <div class="stroop-end-stat">
-          <div class="stroop-end-stat-val" id="endCorrect">0</div>
-          <div class="stroop-end-stat-label">Correct</div>
-        </div>
-        <div class="stroop-end-stat">
-          <div class="stroop-end-stat-val" id="endBestStreak">0</div>
-          <div class="stroop-end-stat-label">Best Streak</div>
-        </div>
+        <div class="stroop-end-stat"><div class="stroop-end-stat-val" id="endScore">0</div><div class="stroop-end-stat-label">Score</div></div>
+        <div class="stroop-end-stat"><div class="stroop-end-stat-val" id="endCorrect">0</div><div class="stroop-end-stat-label">Correct</div></div>
+        <div class="stroop-end-stat"><div class="stroop-end-stat-val" id="endBestStreak">0</div><div class="stroop-end-stat-label">Best Streak</div></div>
+        <div class="stroop-end-stat" id="endRoundsWrap" style="display:none"><div class="stroop-end-stat-val" id="endRounds">0</div><div class="stroop-end-stat-label">Rounds</div></div>
       </div>
-      <div style="width:100%;display:flex;flex-direction:column;gap:0.5rem;">
+      <div style="width:100%;display:flex;flex-direction:column;gap:.5rem;">
         <div class="stroop-accuracy-label" id="endAccuracyLabel">Accuracy: —%</div>
-        <div class="stroop-accuracy-bar">
-          <div class="stroop-accuracy-fill" id="endAccuracyFill" style="width:0%"></div>
-        </div>
+        <div class="stroop-accuracy-bar"><div class="stroop-accuracy-fill" id="endAccuracyFill" style="width:0%"></div></div>
       </div>
-      <button class="stroop-close-btn" onclick="closeStroop()">Back to Training</button>
+      <button class="stroop-action-btn" onclick="resetToStart()">Play Again</button>
+      <button class="stroop-ghost-btn" onclick="closeStroop()">Back to Training</button>
     </div>
+
   </div>
 </div>
 
 <script>
-  /* ═══════════════════════════════
-     MEMO TRAINER LOGIC
-  ═══════════════════════════════ */
-  const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
-  let currentSequence = [];
-  let isHidden = false;
+/* ══════════════════════════════════════
+   MEMO TRAINER
+══════════════════════════════════════ */
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWX';
+let currentSequence = [], isHidden = false;
 
-  function randLetter() {
-    return LETTERS[Math.floor(Math.random() * LETTERS.length)];
+function randLetter(){ return LETTERS[Math.floor(Math.random()*LETTERS.length)]; }
+
+function generateSequence(count){
+  const seq=[];
+  for(let i=0;i<count;i++){
+    let l; do{ l=randLetter(); }while(seq.length>0&&l===seq[seq.length-1]);
+    seq.push(l);
   }
+  return seq;
+}
 
-  function generateSequence(count) {
-    const seq = [];
-    for (let i = 0; i < count; i++) {
-      let letter;
-      do { letter = randLetter(); }
-      while (seq.length > 0 && letter === seq[seq.length - 1]);
-      seq.push(letter);
-    }
-    return seq;
+function generateNew(){
+  const r1e=Math.random()<.5, r1c=r1e?12:13, r2c=r1e?10:9;
+  const r1=generateSequence(r1c), r2=generateSequence(r2c);
+  currentSequence=[...r1,...r2];
+  renderRow('row1',r1,'meta1'); renderRow('row2',r2,'meta2');
+  setHidden(false);
+  document.getElementById('answerInput').value='';
+  document.getElementById('feedback').className='feedback';
+  document.getElementById('feedback').textContent='';
+  document.getElementById('feedbackDetail').innerHTML='';
+  const f=document.createElement('div'); f.className='scan-flash'; document.body.appendChild(f); setTimeout(()=>f.remove(),600);
+}
+
+function renderRow(rowId,letters,metaId){
+  const el=document.getElementById(rowId); el.innerHTML='';
+  const pc=Math.floor(letters.length/2), hs=letters.length%2===1;
+  for(let i=0;i<pc;i++){
+    const s=document.createElement('span'); s.className='pair';
+    s.innerHTML=`<span class="letter">${letters[i*2]}</span><span class="letter">${letters[i*2+1]}</span>`;
+    el.appendChild(s);
   }
+  if(hs){ const s=document.createElement('span'); s.className='singleton'; s.textContent=letters[letters.length-1]; el.appendChild(s); }
+  document.getElementById(metaId).textContent=`${letters.length} letters · ${pc} pair${pc!==1?'s':''}${hs?' + 1':''}`;
+}
 
-  function generateNew() {
-    const row1Even = Math.random() < 0.5;
-    const row1Count = row1Even ? 12 : 13;
-    const row2Count = row1Even ? 10 : 9;
-    const row1 = generateSequence(row1Count);
-    const row2 = generateSequence(row2Count);
-    currentSequence = [...row1, ...row2];
-    renderRow('row1', row1, 'meta1');
-    renderRow('row2', row2, 'meta2');
-    setHidden(false);
-    document.getElementById('answerInput').value = '';
-    document.getElementById('feedback').className = 'feedback';
-    document.getElementById('feedback').textContent = '';
-    document.getElementById('feedbackDetail').innerHTML = '';
-    const flash = document.createElement('div');
-    flash.className = 'scan-flash';
-    document.body.appendChild(flash);
-    setTimeout(() => flash.remove(), 600);
+function setHidden(h){
+  isHidden=h;
+  ['row1','row2'].forEach(id=>document.getElementById(id).classList.toggle('hidden',h));
+  document.getElementById('btnHide').textContent=h?'Reveal':'Hide';
+}
+function toggleHide(){ setHidden(!isHidden); }
+
+function checkAnswer(){
+  const fb=document.getElementById('feedback'), detail=document.getElementById('feedbackDetail');
+  const raw=document.getElementById('answerInput').value.trim().toUpperCase();
+  if(!currentSequence.length){ fb.className='feedback error'; fb.textContent='⚠ Generate a set first.'; detail.innerHTML=''; return; }
+  const user=raw.replace(/\s/g,'').split(''), correct=currentSequence;
+  const ok=user.length===correct.length&&user.every((l,i)=>l===correct[i]);
+  detail.innerHTML='';
+  if(ok){ fb.className='feedback success'; fb.textContent='✓ Perfect — sequence correct!'; }
+  else{
+    fb.className='feedback error';
+    const diff=Math.abs(user.length-correct.length);
+    const wc=correct.reduce((a,l,i)=>a+(user[i]!==l?1:0),0);
+    fb.textContent=`✗ Not quite — ${wc} position${wc!==1?'s':''} off${diff?`, length diff: ${diff}`:''}. `;
+    detail.appendChild(buildCompareRow('Correct',correct,user,true));
+    detail.appendChild(buildCompareRow('Yours',user,correct,false));
   }
+}
 
-  function renderRow(rowId, letters, metaId) {
-    const el = document.getElementById(rowId);
-    el.innerHTML = '';
-    const pairCount = Math.floor(letters.length / 2);
-    const hasSingleton = letters.length % 2 === 1;
-    for (let i = 0; i < pairCount; i++) {
-      const span = document.createElement('span');
-      span.className = 'pair';
-      span.innerHTML = `<span class="letter">${letters[i*2]}</span><span class="letter">${letters[i*2+1]}</span>`;
-      el.appendChild(span);
-    }
-    if (hasSingleton) {
-      const single = document.createElement('span');
-      single.className = 'singleton';
-      single.textContent = letters[letters.length - 1];
-      el.appendChild(single);
-    }
-    const metaPairs = `${pairCount} pair${pairCount !== 1 ? 's' : ''}`;
-    const metaSingle = hasSingleton ? ' + 1' : '';
-    document.getElementById(metaId).textContent = `${letters.length} letters · ${metaPairs}${metaSingle}`;
-  }
-
-  function setHidden(hidden) {
-    isHidden = hidden;
-    const r1 = document.getElementById('row1');
-    const r2 = document.getElementById('row2');
-    const btn = document.getElementById('btnHide');
-    if (hidden) {
-      r1.classList.add('hidden');
-      r2.classList.add('hidden');
-      btn.textContent = 'Reveal';
-    } else {
-      r1.classList.remove('hidden');
-      r2.classList.remove('hidden');
-      btn.textContent = 'Hide';
-    }
-  }
-
-  function toggleHide() { setHidden(!isHidden); }
-
-  function checkAnswer() {
-    const fb = document.getElementById('feedback');
-    const detail = document.getElementById('feedbackDetail');
-    const raw = document.getElementById('answerInput').value.trim().toUpperCase();
-    if (!currentSequence.length) {
-      fb.className = 'feedback error';
-      fb.textContent = '⚠ Generate a set first.';
-      detail.innerHTML = '';
-      return;
-    }
-    const userLetters = raw.replace(/\s/g, '').split('');
-    const correct = currentSequence;
-    const allMatch = userLetters.length === correct.length &&
-      userLetters.every((l, i) => l === correct[i]);
-    detail.innerHTML = '';
-    if (allMatch) {
-      fb.className = 'feedback success';
-      fb.textContent = '✓ Perfect — sequence correct!';
-    } else {
-      fb.className = 'feedback error';
-      const diff = Math.abs(userLetters.length - correct.length);
-      const wrongCount = correct.reduce((acc, l, i) => acc + (userLetters[i] !== l ? 1 : 0), 0);
-      fb.textContent = `✗ Not quite — ${wrongCount} position${wrongCount !== 1 ? 's' : ''} off${diff ? `, length diff: ${diff}` : ''}.`;
-      detail.appendChild(buildCompareRow('Correct', correct, userLetters, true));
-      detail.appendChild(buildCompareRow('Yours',   userLetters, correct, false));
-    }
-  }
-
-  function buildCompareRow(label, source, ref, isCorrect) {
-    const row = document.createElement('div');
-    row.className = 'feedback-row';
-    const lbl = document.createElement('span');
-    lbl.className = 'feedback-row-label';
-    lbl.textContent = label;
-    row.appendChild(lbl);
-    const chars = document.createElement('span');
-    chars.className = 'feedback-chars';
-    source.forEach((letter, i) => {
-      const span = document.createElement('span');
-      const refLetter = ref[i];
-      if (isCorrect) {
-        span.className = refLetter === letter ? 'char-match' : 'char-miss';
-      } else {
-        if (i >= ref.length) span.className = 'char-extra';
-        else span.className = ref[i] === letter ? 'char-match' : 'char-miss';
-      }
-      span.textContent = letter;
-      if (i > 0 && i % 2 === 0) {
-        const spacer = document.createElement('span');
-        spacer.style.display = 'inline-block';
-        spacer.style.width = '0.4em';
-        chars.appendChild(spacer);
-      }
-      chars.appendChild(span);
-    });
-    row.appendChild(chars);
-    return row;
-  }
-
-  generateNew();
-
-  /* ═══════════════════════════════
-     STROOP GAME LOGIC
-  ═══════════════════════════════ */
-  const STROOP_COLORS = [
-    { name: 'RED',    hex: '#f87171' },
-    { name: 'BLUE',   hex: '#60a5fa' },
-    { name: 'GREEN',  hex: '#4ade80' },
-    { name: 'YELLOW', hex: '#fde047' },
-  ];
-
-  let stroopDuration = 150;
-  let stroopTimeLeft = 150;
-  let stroopInterval = null;
-  let stroopScore = 0;
-  let stroopStreak = 0;
-  let stroopBestStreak = 0;
-  let stroopTotal = 0;
-  let stroopCorrectTotal = 0;
-  let stroopCurrentInk = null;
-  let stroopCurrentWord = null;
-  let canAnswer = true;
-
-  function selectDuration(sec) {
-    stroopDuration = sec;
-    document.querySelectorAll('.stroop-duration-btn').forEach(b => {
-      b.classList.toggle('selected', parseInt(b.dataset.sec) === sec);
-    });
-  }
-
-  function openStroop() {
-    document.getElementById('stroopOverlay').classList.add('visible');
-    document.getElementById('stroopStartScreen').style.display = 'flex';
-    document.getElementById('stroopActiveMain').classList.remove('visible');
-    document.getElementById('stroopEnd').classList.remove('visible');
-  }
-
-  function closeStroop() {
-    stopStroopTimer();
-    document.getElementById('stroopOverlay').classList.remove('visible');
-    document.getElementById('btnStroop').classList.remove('active');
-  }
-
-  function startStroop() {
-    document.getElementById('stroopStartScreen').style.display = 'none';
-    document.getElementById('stroopActiveMain').classList.add('visible');
-    document.getElementById('stroopEnd').classList.remove('visible');
-
-    stroopTimeLeft = stroopDuration;
-    stroopScore = 0;
-    stroopStreak = 0;
-    stroopBestStreak = 0;
-    stroopTotal = 0;
-    stroopCorrectTotal = 0;
-    canAnswer = true;
-
-    updateStroopStats();
-    buildColorButtons();
-    nextStroopWord();
-    startStroopTimer();
-
-    document.getElementById('btnStroop').classList.add('active');
-  }
-
-  function buildColorButtons() {
-    const container = document.getElementById('stroopButtons');
-    container.innerHTML = '';
-    STROOP_COLORS.forEach(c => {
-      const btn = document.createElement('button');
-      btn.className = 'stroop-btn';
-      btn.textContent = c.name;
-      btn.style.color = c.hex;
-      btn.style.borderColor = c.hex;
-      btn.dataset.color = c.name;
-      btn.addEventListener('click', () => handleStroopAnswer(c.name, btn));
-      container.appendChild(btn);
-    });
-  }
-
-  function nextStroopWord() {
-    const wordColor = STROOP_COLORS[Math.floor(Math.random() * STROOP_COLORS.length)];
-    let inkColor;
-    do {
-      inkColor = STROOP_COLORS[Math.floor(Math.random() * STROOP_COLORS.length)];
-    } while (inkColor.name === wordColor.name);
-
-    stroopCurrentWord = wordColor.name;
-    stroopCurrentInk = inkColor.name;
-
-    const wordEl = document.getElementById('stroopWord');
-    wordEl.classList.add('flash-out');
-    setTimeout(() => {
-      wordEl.textContent = wordColor.name;
-      wordEl.style.color = inkColor.hex;
-      wordEl.classList.remove('flash-out');
-      wordEl.classList.add('flash-in');
-      setTimeout(() => wordEl.classList.remove('flash-in'), 150);
-      canAnswer = true;
-    }, 90);
-  }
-
-  function handleStroopAnswer(chosen, btnEl) {
-    if (!canAnswer || stroopTimeLeft <= 0) return;
-    canAnswer = false;
-    stroopTotal++;
-
-    const correct = chosen === stroopCurrentInk;
-    if (correct) {
-      stroopCorrectTotal++;
-      stroopStreak++;
-      if (stroopStreak > stroopBestStreak) stroopBestStreak = stroopStreak;
-      // Bonus for streak
-      const bonus = stroopStreak >= 5 ? 2 : 1;
-      stroopScore += bonus;
-      btnEl.classList.add('correct-flash');
-      setTimeout(() => btnEl.classList.remove('correct-flash'), 300);
-    } else {
-      stroopStreak = 0;
-      btnEl.classList.add('wrong-flash');
-      setTimeout(() => btnEl.classList.remove('wrong-flash'), 350);
-      // Brief red flash on word area
-      document.getElementById('stroopWord').style.opacity = '0.4';
-      setTimeout(() => document.getElementById('stroopWord').style.opacity = '1', 200);
-    }
-
-    updateStroopStats();
-    setTimeout(() => nextStroopWord(), correct ? 120 : 300);
-  }
-
-  function updateStroopStats() {
-    document.getElementById('stroopScore').textContent = stroopScore;
-    const streakEl = document.getElementById('stroopStreak');
-    streakEl.textContent = stroopStreak;
-    streakEl.classList.toggle('streak-fire', stroopStreak >= 5);
-    const acc = stroopTotal > 0
-      ? Math.round((stroopCorrectTotal / stroopTotal) * 100) + '%'
-      : '—';
-    document.getElementById('stroopAccuracy').textContent = acc;
-  }
-
-  function startStroopTimer() {
-    stopStroopTimer();
-    updateTimerDisplay();
-    stroopInterval = setInterval(() => {
-      stroopTimeLeft--;
-      updateTimerDisplay();
-      if (stroopTimeLeft <= 0) {
-        stopStroopTimer();
-        endStroop();
-      }
-    }, 1000);
-  }
-
-  function stopStroopTimer() {
-    if (stroopInterval) { clearInterval(stroopInterval); stroopInterval = null; }
-  }
-
-  function updateTimerDisplay() {
-    const mins = Math.floor(stroopTimeLeft / 60);
-    const secs = stroopTimeLeft % 60;
-    const label = `${mins}:${secs.toString().padStart(2, '0')}`;
-    const pct = (stroopTimeLeft / stroopDuration) * 100;
-
-    const timeEl = document.getElementById('stroopTimeVal');
-    const barEl  = document.getElementById('stroopBarFill');
-
-    timeEl.textContent = label;
-    barEl.style.width = pct + '%';
-
-    const warn = stroopTimeLeft <= 30;
-    const danger = stroopTimeLeft <= 10;
-
-    timeEl.classList.toggle('warning', warn && !danger);
-    timeEl.classList.toggle('danger', danger);
-    barEl.classList.toggle('warning', warn && !danger);
-    barEl.classList.toggle('danger', danger);
-  }
-
-  function endStroop() {
-    canAnswer = false;
-    document.getElementById('stroopActiveMain').classList.remove('visible');
-    const endScreen = document.getElementById('stroopEnd');
-    endScreen.classList.add('visible');
-
-    document.getElementById('endScore').textContent = stroopScore;
-    document.getElementById('endCorrect').textContent = stroopCorrectTotal;
-    document.getElementById('endBestStreak').textContent = stroopBestStreak;
-
-    const accPct = stroopTotal > 0
-      ? Math.round((stroopCorrectTotal / stroopTotal) * 100)
-      : 0;
-    document.getElementById('endAccuracyLabel').textContent = `Accuracy: ${accPct}% (${stroopCorrectTotal}/${stroopTotal})`;
-    // animate bar after a tick
-    setTimeout(() => {
-      document.getElementById('endAccuracyFill').style.width = accPct + '%';
-    }, 80);
-
-    document.getElementById('btnStroop').classList.remove('active');
-  }
-
-  // Close on backdrop click
-  document.getElementById('stroopOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeStroop();
+function buildCompareRow(label,source,ref,isCor){
+  const row=document.createElement('div'); row.className='feedback-row';
+  const lbl=document.createElement('span'); lbl.className='feedback-row-label'; lbl.textContent=label; row.appendChild(lbl);
+  const chars=document.createElement('span'); chars.className='feedback-chars';
+  source.forEach((l,i)=>{
+    const s=document.createElement('span');
+    if(isCor) s.className=ref[i]===l?'char-match':'char-miss';
+    else s.className=i>=ref.length?'char-extra':ref[i]===l?'char-match':'char-miss';
+    s.textContent=l;
+    if(i>0&&i%2===0){ const sp=document.createElement('span'); sp.style.cssText='display:inline-block;width:.4em'; chars.appendChild(sp); }
+    chars.appendChild(s);
   });
-</script>
+  row.appendChild(chars); return row;
+}
 
+generateNew();
+
+/* ══════════════════════════════════════
+   STROOP TASK
+══════════════════════════════════════ */
+const ALL_COLORS=[
+  {name:'RED',   hex:'#f87171'},
+  {name:'BLUE',  hex:'#60a5fa'},
+  {name:'GREEN', hex:'#4ade80'},
+  {name:'YELLOW',hex:'#fde047'},
+  {name:'ORANGE',hex:'#fb923c'},
+  {name:'PINK',  hex:'#f472b6'},
+  {name:'CYAN',  hex:'#22d3ee'},
+  {name:'WHITE', hex:'#e2e8f0'},
+];
+
+// Config
+let cfg={duration:150,colourCount:4,vanishEnabled:false,vanishStartMs:2000,reverseEnabled:false,reverseFreq:15};
+
+// Runtime state
+let activeColors=[], stroopDuration=150, stroopTimeLeft=150, stroopInterval=null;
+let stroopScore=0, stroopStreak=0, stroopBestStreak=0, stroopTotal=0, stroopCorrectTotal=0;
+let stroopCurrentInk=null, stroopCurrentWord=null, canAnswer=true;
+let currentMode='ink', questionsInRound=0, roundNumber=1;
+let vanishTimeout=null, currentVanishMs=2000;
+
+/* ── Settings UI ── */
+function selectDuration(s){ cfg.duration=s; document.querySelectorAll('#durationOpts .opt-btn').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.sec)===s)); }
+function selectColours(n){
+  cfg.colourCount=n;
+  document.querySelectorAll('#colourOpts .opt-btn').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.n)===n));
+  document.getElementById('colourBadge').textContent=n+' colours';
+  renderColourPreview(n);
+}
+function renderColourPreview(n){
+  const p=document.getElementById('colourPreview'); p.innerHTML='';
+  ALL_COLORS.slice(0,n).forEach(c=>{
+    const d=document.createElement('span');
+    d.style.cssText=`display:inline-block;width:12px;height:12px;border-radius:50%;background:${c.hex};box-shadow:0 0 6px ${c.hex}55;flex-shrink:0`;
+    p.appendChild(d);
+  });
+  const lbl=document.createElement('span');
+  lbl.style.cssText='font-size:.55rem;letter-spacing:.15em;color:var(--text-muted);margin-left:.2rem;';
+  lbl.textContent=ALL_COLORS.slice(0,n).map(c=>c.name).join(' · ');
+  p.appendChild(lbl);
+}
+function toggleVanish(on){ cfg.vanishEnabled=on; document.getElementById('vanishBadge').textContent=on?'On':'Off'; document.getElementById('vanishSpeedOpts').style.display=on?'flex':'none'; }
+function selectVanishStart(ms){ cfg.vanishStartMs=ms; document.querySelectorAll('#vanishSpeedOpts .opt-btn').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.ms)===ms)); }
+function toggleReverse(on){ cfg.reverseEnabled=on; document.getElementById('reverseBadge').textContent=on?'On':'Off'; document.getElementById('reverseFreqOpts').style.display=on?'flex':'none'; }
+function selectReverseFreq(n){ cfg.reverseFreq=n; document.querySelectorAll('#reverseFreqOpts .opt-btn').forEach(b=>b.classList.toggle('selected',parseInt(b.dataset.freq)===n)); }
+
+/* ── Overlay nav ── */
+function openStroop(){ document.getElementById('stroopOverlay').classList.add('visible'); resetToStart(); }
+function resetToStart(){
+  stopStroopTimer(); clearVanishTimeout();
+  document.getElementById('stroopStartScreen').classList.remove('hidden');
+  document.getElementById('stroopActiveMain').classList.remove('visible');
+  document.getElementById('stroopEnd').classList.remove('visible');
+  document.getElementById('btnStroop').classList.remove('active');
+}
+function closeStroop(){ stopStroopTimer(); clearVanishTimeout(); document.getElementById('stroopOverlay').classList.remove('visible'); document.getElementById('btnStroop').classList.remove('active'); }
+
+/* ── Start ── */
+function startStroop(){
+  activeColors=ALL_COLORS.slice(0,cfg.colourCount);
+  stroopDuration=stroopTimeLeft=cfg.duration;
+  stroopScore=stroopStreak=stroopBestStreak=stroopTotal=stroopCorrectTotal=0;
+  canAnswer=true; currentMode='ink'; questionsInRound=0; roundNumber=1;
+  currentVanishMs=cfg.vanishStartMs;
+
+  document.getElementById('stroopStartScreen').classList.add('hidden');
+  document.getElementById('stroopActiveMain').classList.add('visible');
+  document.getElementById('stroopEnd').classList.remove('visible');
+
+  const rv=cfg.reverseEnabled;
+  document.getElementById('roundBanner').style.display=rv?'block':'none';
+  document.getElementById('roundCountStat').style.display=rv?'flex':'none';
+  document.getElementById('wordTimerTrack').style.display=cfg.vanishEnabled?'block':'none';
+
+  const bg=document.getElementById('stroopButtons');
+  bg.className='stroop-buttons';
+  if(cfg.colourCount===6) bg.classList.add('cols-6');
+  if(cfg.colourCount===8) bg.classList.add('cols-8');
+
+  updateRoundUI(); updateStroopStats(); buildColorButtons(); nextStroopWord(); startStroopTimer();
+  document.getElementById('btnStroop').classList.add('active');
+}
+
+/* ── Round flip ── */
+function updateRoundUI(){
+  if(!cfg.reverseEnabled) return;
+  document.getElementById('stroopRound').textContent=roundNumber;
+  const banner=document.getElementById('roundBanner'), inst=document.getElementById('stroopInstruction');
+  if(currentMode==='ink'){
+    banner.className='round-banner ink'; banner.textContent='Identify: Ink Colour';
+    inst.innerHTML='What is the <span class="hi-ink">ink colour</span> of this word?';
+  } else {
+    banner.className='round-banner word'; banner.textContent='Identify: Word Colour';
+    inst.innerHTML='What colour does the <span class="hi-word">word say</span>?';
+  }
+}
+function checkRoundFlip(){
+  if(!cfg.reverseEnabled) return;
+  questionsInRound++;
+  if(questionsInRound>=cfg.reverseFreq){
+    questionsInRound=0; roundNumber++;
+    currentMode=currentMode==='ink'?'word':'ink';
+    updateRoundUI();
+    // Flash the banner to alert the player
+    const banner=document.getElementById('roundBanner');
+    banner.style.opacity='0';
+    requestAnimationFrame(()=>{ banner.style.transition='opacity .35s'; banner.style.opacity='1'; });
+  }
+}
+
+/* ── Buttons ── */
+function buildColorButtons(){
+  const c=document.getElementById('stroopButtons'); c.innerHTML='';
+  activeColors.forEach(col=>{
+    const b=document.createElement('button'); b.className='stroop-btn';
+    b.textContent=col.name; b.style.color=col.hex; b.style.borderColor=col.hex;
+    b.addEventListener('click',()=>handleStroopAnswer(col.name,b));
+    c.appendChild(b);
+  });
+}
+
+/* ── Vanish timer ── */
+function clearVanishTimeout(){ if(vanishTimeout){clearTimeout(vanishTimeout);vanishTimeout=null;} }
+function startVanishTimer(ms){
+  clearVanishTimeout();
+  if(!cfg.vanishEnabled) return;
+  const fill=document.getElementById('wordTimerFill');
+  fill.style.transition='none'; fill.style.width='100%';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    fill.style.transition=`width ${ms}ms linear`; fill.style.width='0%';
+  }));
+  vanishTimeout=setTimeout(()=>{
+    if(!canAnswer) return;
+    canAnswer=false;
+    document.getElementById('stroopWord').style.opacity='.15';
+    stroopTotal++; stroopStreak=0; updateStroopStats(); checkRoundFlip();
+    currentVanishMs=Math.max(600,currentVanishMs-70);
+    setTimeout(()=>{ document.getElementById('stroopWord').style.opacity='1'; nextStroopWord(); },320);
+  },ms);
+}
+
+/* ── Next word ── */
+function nextStroopWord(){
+  if(stroopTimeLeft<=0) return;
+  const wc=activeColors[Math.floor(Math.random()*activeColors.length)];
+  let ic; do{ ic=activeColors[Math.floor(Math.random()*activeColors.length)]; }while(ic.name===wc.name);
+  stroopCurrentWord=wc.name; stroopCurrentInk=ic.name;
+  const el=document.getElementById('stroopWord');
+  el.classList.add('flash-out');
+  setTimeout(()=>{
+    el.textContent=wc.name; el.style.color=ic.hex; el.style.opacity='1';
+    el.classList.remove('flash-out'); el.classList.add('flash-in');
+    setTimeout(()=>el.classList.remove('flash-in'),150);
+    canAnswer=true; startVanishTimer(currentVanishMs);
+  },90);
+}
+
+/* ── Answer ── */
+function handleStroopAnswer(chosen,btnEl){
+  if(!canAnswer||stroopTimeLeft<=0) return;
+  canAnswer=false; clearVanishTimeout(); stroopTotal++;
+  const correctAnswer=currentMode==='ink'?stroopCurrentInk:stroopCurrentWord;
+  const ok=chosen===correctAnswer;
+  if(ok){
+    stroopCorrectTotal++; stroopStreak++; if(stroopStreak>stroopBestStreak) stroopBestStreak=stroopStreak;
+    stroopScore+=stroopStreak>=5?2:1;
+    btnEl.classList.add('correct-flash'); setTimeout(()=>btnEl.classList.remove('correct-flash'),300);
+    if(cfg.vanishEnabled) currentVanishMs=Math.max(600,currentVanishMs-30);
+  } else {
+    stroopStreak=0; btnEl.classList.add('wrong-flash'); setTimeout(()=>btnEl.classList.remove('wrong-flash'),350);
+    const w=document.getElementById('stroopWord'); w.style.opacity='.3'; setTimeout(()=>w.style.opacity='1',220);
+  }
+  updateStroopStats(); checkRoundFlip();
+  setTimeout(()=>nextStroopWord(),ok?110:280);
+}
+
+/* ── Stats ── */
+function updateStroopStats(){
+  document.getElementById('stroopScore').textContent=stroopScore;
+  const se=document.getElementById('stroopStreak'); se.textContent=stroopStreak; se.classList.toggle('streak-fire',stroopStreak>=5);
+  document.getElementById('stroopAccuracy').textContent=stroopTotal>0?Math.round(stroopCorrectTotal/stroopTotal*100)+'%':'—';
+}
+
+/* ── Timer ── */
+function startStroopTimer(){ stopStroopTimer(); updateTimerDisplay(); stroopInterval=setInterval(()=>{ stroopTimeLeft--; updateTimerDisplay(); if(stroopTimeLeft<=0){stopStroopTimer();endStroop();} },1000); }
+function stopStroopTimer(){ if(stroopInterval){clearInterval(stroopInterval);stroopInterval=null;} }
+function updateTimerDisplay(){
+  const m=Math.floor(stroopTimeLeft/60), s=stroopTimeLeft%60, pct=stroopTimeLeft/stroopDuration*100;
+  const warn=stroopTimeLeft<=30, danger=stroopTimeLeft<=10;
+  const te=document.getElementById('stroopTimeVal'), be=document.getElementById('stroopBarFill');
+  te.textContent=`${m}:${s.toString().padStart(2,'0')}`; be.style.width=pct+'%';
+  te.classList.toggle('warning',warn&&!danger); te.classList.toggle('danger',danger);
+  be.classList.toggle('warning',warn&&!danger); be.classList.toggle('danger',danger);
+}
+
+/* ── End ── */
+function endStroop(){
+  canAnswer=false; clearVanishTimeout();
+  document.getElementById('stroopActiveMain').classList.remove('visible');
+  document.getElementById('stroopEnd').classList.add('visible');
+  document.getElementById('endScore').textContent=stroopScore;
+  document.getElementById('endCorrect').textContent=stroopCorrectTotal;
+  document.getElementById('endBestStreak').textContent=stroopBestStreak;
+  const erw=document.getElementById('endRoundsWrap');
+  if(cfg.reverseEnabled){ erw.style.display='flex'; document.getElementById('endRounds').textContent=roundNumber; } else erw.style.display='none';
+  const acc=stroopTotal>0?Math.round(stroopCorrectTotal/stroopTotal*100):0;
+  document.getElementById('endAccuracyLabel').textContent=`Accuracy: ${acc}% (${stroopCorrectTotal}/${stroopTotal})`;
+  setTimeout(()=>{ document.getElementById('endAccuracyFill').style.width=acc+'%'; },80);
+  document.getElementById('btnStroop').classList.remove('active');
+}
+
+/* ── Init ── */
+renderColourPreview(4);
+document.getElementById('stroopOverlay').addEventListener('click',function(e){ if(e.target===this) closeStroop(); });
+</script>
 </body>
 </html>
